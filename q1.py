@@ -1,10 +1,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from collections import Counter
+from collections import Counter,deque
 from scipy import stats
-import networkx as nx
 import os
+from networkx.algorithms import approximation
+import heapq
 
 city_files = [
     "cases/Chengdu_Edgelist.csv",
@@ -20,10 +21,10 @@ city_files = [
 # 存储每个城市的统计结果
 results = {}
 
-def build_graph(df):
+def build_graph(df:pd.DataFrame):
     """建立有向图"""
     neighbors = {}
-    for idx, row in df.iterrows():
+    for _, row in df.iterrows():
         u = row['START_NODE']
         v = row['END_NODE']
         neighbors.setdefault(u, []).append(v)
@@ -31,13 +32,13 @@ def build_graph(df):
         neighbors[node] = list(set(neighbors[node]))
     return neighbors
 
-def degree_dist(neighbors):
+def degree_dist(neighbors:dict):
     """计算度序列及度分布频数"""
     deg = [len(neigh) for neigh in neighbors.values()]
     deg_counter = Counter(deg)
     return deg, deg_counter
 
-def cluster(neighbors):
+def cluster(neighbors:dict):
     """计算平均聚类系数"""
     cluster_coef = {}
     for cur, neighbor in neighbors.items():
@@ -57,21 +58,69 @@ def cluster(neighbors):
     avg_c = np.mean(list(cluster_coef.values())) if cluster_coef else 0
     return avg_c, cluster_coef
 
-# def diameter(neighbors):
-#     """计算最大连通分量的直径"""
-#     G = nx.Graph()
-#     for node, nbrs in neighbors.items():
-#         for nbr in nbrs:
-#             G.add_edge(node, nbr)
-#     # 获取最大连通分量
-#     if not nx.is_connected(G):
-#         components = list(nx.connected_components(G))
-#         largest_comp = max(components, key=len)
-#         G_largest = G.subgraph(largest_comp).copy()
-#         diameter = nx.diameter(G_largest)
-#     else:
-#         diameter = nx.diameter(G)
-#     return diameter
+def dijkstra(src, graph):
+    """返回 (dist_list, farthest_node, max_dist)"""
+    n = len(graph)
+    dist = {}
+    for node in graph:
+        dist[node]=float('inf')
+    dist[src] = 0
+    pq = [(0, src)]
+    while pq:
+        d, u = heapq.heappop(pq)
+        if d != dist[u]:
+            continue
+        for v, w in graph[u]:
+            nd = d + w
+            if nd < dist[v]:
+                dist[v] = nd
+                heapq.heappush(pq, (nd, v))
+    max_dist = max(dist.values())
+    farthest = next(node for node, d in dist.items() if d == max_dist)
+    return farthest, max_dist
+
+def compute_diameter(df:pd.DataFrame):
+    """计算直径，考虑最大连通分量"""
+    G={}
+    for _,row in df.iterrows():
+        u=row['START_NODE']
+        v=row['END_NODE']
+        w=row['LENGTH']
+        G.setdefault(u, []).append((v, w))
+        G.setdefault(v, []).append((u, w))
+
+    # 寻找最大连通分量
+    visited = set()
+    max_comp_nodes = set()
+    max_size = 0
+    for node in G:
+        if node in visited:
+            continue
+        comp_nodes = set()
+        q = deque([node])
+        visited.add(node)
+        comp_nodes.add(node)
+        while q:
+            cur = q.popleft()
+            for nbr, _ in G[cur]:
+                if nbr not in visited:
+                    visited.add(nbr)
+                    comp_nodes.add(nbr)
+                    q.append(nbr)
+        if len(comp_nodes) > max_size:
+            max_size = len(comp_nodes)
+            max_comp_nodes = comp_nodes
+
+    # 构建最大连通分量的子图
+    max_graph = {node: G[node] for node in max_comp_nodes}
+    print(f"total_nodes: {len(G)}, max_node_cnt: {max_size}, connected: {len(G)==max_size}")
+
+    # 计算直径
+    s = next(iter(max_graph))
+    nd1,_=dijkstra(s,max_graph)
+    _,diameter=dijkstra(nd1,max_graph)
+
+    return diameter
 
 for filepath in city_files:
     city_name = os.path.basename(filepath).replace("_Edgelist.csv", "")
@@ -97,8 +146,8 @@ for filepath in city_files:
     print(f"  平均聚类系数: {avg_c:.4f}")
     
     # 直径
-    # diam = diameter(neighbors)
-    # print(f"  直径（最大连通分量）: {diam}")
+    diam = compute_diameter(df)
+    print(f"  直径（最大连通分量）: {diam}")
     
     # 保存结果
     results[city_name] = {
@@ -107,7 +156,7 @@ for filepath in city_files:
         "max_deg": max_deg,
         "deg_dist": deg_cnt,
         "avg_clustering": avg_c,
-        # "diameter": diam,
+        "diameter": diam,
         "cluster_coef_dict": cluster_coef_dict
     }
     
@@ -141,8 +190,7 @@ summary_df = pd.DataFrame([
         "MinDeg": info["min_deg"],
         "MaxDeg": info["max_deg"],
         "AvgClust": info["avg_clustering"],
-        # "Diameter": info["diameter"],
-        # "PowerLawAlpha": info["powerlaw_alpha"] if info["powerlaw_alpha"] else np.nan
+        "Diameter": info["diameter"],
     }
     for city, info in results.items()
 ])
