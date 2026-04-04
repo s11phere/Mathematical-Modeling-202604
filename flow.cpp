@@ -33,7 +33,7 @@ bool deleted[N];
 vector<eg> g[N],g1[N];
 int s,t,cnt=0,v[M],v1[M],pos[N],dis[N],node_cnt;
 bool found[M],vis[N];
-int node_idx[M];
+int node_idx[M],rnode_idx[M];
 eg flow[N];
 inline void add(int a,int b,int val){
     cnt++;
@@ -126,11 +126,13 @@ void read_csv(string filepath){
         int b = stoi(row[3]);
         if(!found[a]){
             node_idx[a]=++node_cnt;
+            rnode_idx[node_cnt]=a;
             found[a]=true;
         }
         a=node_idx[a];
         if(!found[b]){
             node_idx[b]=++node_cnt;
+            rnode_idx[node_cnt]=b;
             found[b]=true;
         }
         b=node_idx[b];
@@ -201,6 +203,7 @@ vector<int> iter_delete_nodes(int target, int update_freq) {
                 int node = candidates[i].id;
                 deleted[node] = true;
                 comp = largest_component();
+                // cout<<comp<<' ';
                 ans.push_back(comp);
             }
         }
@@ -222,6 +225,7 @@ vector<int> iter_delete_nodes(int target, int update_freq) {
                 int node = candidates[i].id;
                 deleted[node] = true;
                 comp = largest_component();
+                // cout<<comp<<' ';
                 ans.push_back(comp);
                 if (comp <= target) {
                     return ans;
@@ -243,13 +247,13 @@ int main(){
         for(int x:res) ans+=(double)x/(node_cnt*node_cnt);
         cout<<res.size()<<' ';
         cout<<"result: "<<ans<<endl;
-        string outfile = filepath.substr(filepath.find_last_of("/\\") + 1);
-        outfile = outfile.substr(0, outfile.find_last_of('.')) + "_res.csv";
-        ofstream fout(outfile);
-        for (size_t i = 0; i < res.size(); ++i) {
-            fout << i + 1 << "," << res[i] << "\n";
-        }
-        fout.close();
+        // string outfile = filepath.substr(filepath.find_last_of("/\\") + 1);
+        // outfile = outfile.substr(0, outfile.find_last_of('.')) + "_res.csv";
+        // ofstream fout(outfile);
+        // for (size_t i = 0; i < res.size(); ++i) {
+        //     fout << i + 1 << "," << res[i] << "\n";
+        // }
+        // fout.close();
     }
     return 0; 
 }

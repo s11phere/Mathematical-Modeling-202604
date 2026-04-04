@@ -76,3 +76,21 @@ result: 0.0724
 Current City: Zhengzhou
 result: 0.0765
 
+网络流启发
+
+Finished cases/Chengdu_filtered_Edgelist.csv
+6043 result: 0.0708703
+Finished cases/Dalian_filtered_Edgelist.csv
+6726 result: 0.05091
+Finished cases/Dongguan_filtered_Edgelist.csv
+4632 result: 0.0635336
+Finished cases/Harbin_filtered_Edgelist.csv
+6434 result: 0.0740033
+Finished cases/Qingdao_filtered_Edgelist.csv
+8064 result: 0.0643039
+Finished cases/Quanzhou_filtered_Edgelist.csv
+3230 result: 0.0888974
+Finished cases/Shenyang_filtered_Edgelist.csv
+8251 result: 0.0825989
+Finished cases/Zhengzhou_filtered_Edgelist.csv
+5216 result: 0.0799561
