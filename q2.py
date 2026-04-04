@@ -18,7 +18,7 @@ import random
 import matplotlib.pyplot as plt
 import math
 from q1 import get_processed_graph
-
+import statistics
 
 
 
@@ -137,7 +137,7 @@ def strenth_line(graph_dic,N,d=150): # 效能曲线绘制函数，N为蒙特卡�
                 hitler_set = set(random.sample(list(temp_graph.keys()),n_pop))
                 temp_graph = pop_p(temp_graph,hitler_set)
                 l[i] += max_link(temp_graph)/(max_link0*N)
-        print("第",t,"次蒙特卡洛循环")
+    # print("一次蒙特卡洛循环")
     return(l)
 
 
@@ -262,10 +262,7 @@ def main():
         # 调用清洗函数
         G,_ = get_processed_graph(df, city_name=city_name, plot=False, include_length=False)
         # 转换为无向图（兼容带权邻接表）
-        print(type(G))
-        for key in G.keys():
-            if G[key] != None:
-                print(key)
+
 
 
         print(f"成功读取并清洗 {city_name} 道路记录")
@@ -329,11 +326,146 @@ def related():
 
 
 
-def stablity(G):
-    return
 
+def stablity(G, nlist, blist, rep):
+    """
+    评估不同蒙特卡洛次数和分辨率下鲁棒性指标的稳定性。
+    输出相对标准差（标准差/均值）的热力图和文本表格。
+    
+    参数:
+        G: 图邻接表（字典格式）
+        nlist: 蒙特卡洛次数列表
+        blist: 分辨率参数列表（d值）
+        rep: 每个 (n, b) 组合下重复计算的次数
+    
+    返回:
+        rstd_matrix: 相对标准差的二维列表，行对应 nlist，列对应 blist
+        mean_matrix: 均值的二维列表
+    """
+    rstd_matrix = []
+    mean_matrix = []
+    
+    for n in nlist:
+        rstd_row = []
+        mean_row = []
+        for b in blist:
+            values = []
+            for _ in range(rep):
+                l = strenth_line(G, n, d=b)
+                r = robustness(l)
+                values.append(r)
+            mean_val = statistics.mean(values) if values else 0
+            std_val = statistics.stdev(values) if len(values) > 1 else 0
+            rstd = (std_val / mean_val) if mean_val != 0 else float('inf')
+            rstd_row.append(rstd)
+            mean_row.append(mean_val)
+            print(f"n={n}, b={b}: mean={mean_val:.6f}, std={std_val:.6f}, rstd={rstd:.6f}")
+        rstd_matrix.append(rstd_row)
+        mean_matrix.append(mean_row)
+    
+    # 打印表格形式文本输出
+    print("\n========== 相对标准差 (RSTD) 表格 ==========")
+    # 表头
+    header = "n\\b".ljust(8) + "".join([f"{b:>12}" for b in blist])
+    print(header)
+    for i, n in enumerate(nlist):
+        row_str = f"{n:<8}" + "".join([f"{rstd_matrix[i][j]:>12.6f}" for j in range(len(blist))])
+        print(row_str)
+    
+    # 绘制热力图
+    fig, ax = plt.subplots(figsize=(12, 8))
+    im = ax.imshow(rstd_matrix, cmap='viridis', aspect='auto', origin='lower')
+    ax.set_xticks(range(len(blist)))
+    ax.set_xticklabels(blist)
+    ax.set_yticks(range(len(nlist)))
+    ax.set_yticklabels(nlist)
+    ax.set_xlabel("Resolution (d)", fontsize=12)
+    ax.set_ylabel("Monte Carlo Iterations (n)", fontsize=12)
+    ax.set_title("Relative Standard Deviation of Robustness", fontsize=14)
+    cbar = plt.colorbar(im, ax=ax)
+    cbar.set_label("Relative Standard Deviation", fontsize=12)
+    plt.tight_layout()
+    plt.show()
+    
+    return rstd_matrix, mean_matrix
+
+
+def plot_robustness_line(G,d,n,D,N, city_name="City", output_dir="robustness_line"): # 绘制稳健性曲线,dn为计算稳健性的参数,DN为绘制曲线的参数
+    
+    l = [0]*(D+1)
+    x = [i / D for i in range(D + 1)]   # 横坐标：移除比例
+    y = l
+    size = len(G)
+
+    for t in range(N):
+        G_temp = G
+        for i in range(D):
+            if i == 0:
+                l[i] = 1
+            elif i == D:
+                continue
+            else:
+                n_pop = int(size*(x[i]-x[i-1]))
+                hitler_list = list(random.sample(list(G_temp.keys()),n_pop))
+                G_temp = pop_p(G_temp,hitler_list)
+                line = strenth_line(G_temp,n,d)
+                l[i] += robustness(line)/N
+        print(t+1,"/",N)
+    
+    script_dir = Path(__file__).parent
+    out_path = script_dir / output_dir
+    out_path.mkdir(parents=True, exist_ok=True)
+    # 保存 CSV
+    df = pd.DataFrame({"Fraction_Removed": x, "Robustness": y})
+    csv_path = out_path / f"{city_name}_robustness_vs_removal.csv"
+    df.to_csv(csv_path, index=False)
+    print(f"数据已保存至: {csv_path}")
+    
+    # 绘制曲线
+    plt.figure(figsize=(10, 6))
+    plt.plot(x, y, marker='o', linestyle='-', linewidth=1.5, markersize=4)
+    plt.title(f"Robustness vs Fraction of Removed Nodes - {city_name}")
+    plt.xlabel("Fraction of Removed Nodes")
+    plt.ylabel("Robustness")
+    plt.grid(True, alpha=0.3)
+    plt.xlim(0, 1)
+    plt.ylim(bottom=0)
+    plt.tight_layout()
+    
+    img_path = out_path / f"{city_name}_robustness_vs_removal.png"
+    plt.savefig(img_path, dpi=300)
+    print(f"图片已保存至: {img_path}")
+    plt.show()
+    
+    return x, y
 
 if __name__ == "__main__":
 
-    main()
-    related()
+    city_files = [
+        "cases/Chengdu_Edgelist.csv",
+        "cases/Dalian_Edgelist.csv",
+        "cases/Dongguan_Edgelist.csv",
+        "cases/Harbin_Edgelist.csv",
+        "cases/Qingdao_Edgelist.csv",
+        "cases/Quanzhou_Edgelist.csv",
+        "cases/Shenyang_Edgelist.csv",
+        "cases/Zhengzhou_Edgelist.csv"
+    ]
+
+
+
+    for city_file in city_files:
+        csv_path = Path(__file__).parent / city_file
+        city_name = csv_path.stem.replace('_Edgelist', '')
+
+        print(f"\n========== 处理 {city_name} (网格对比) ==========")
+        df = pd.read_csv(csv_path)
+        G,_= get_processed_graph(df, city_name=city_name, plot=False, include_length=False)
+
+        print(f"成功读取并清洗 {city_name} 道路记录")
+        print(f"清洗后节点数: {len(G)}")
+        print(f"最大连通分量: {max_link(G)}")
+
+        plot_robustness_line(G,20,2,40,10,city_name=city_name)
+
+
