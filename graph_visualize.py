@@ -196,7 +196,7 @@ def plot_network_with_one_way_edges(csv_file, figsize=(12, 10), dpi=150):
         u = row['START_NODE']
         v = row['END_NODE']
         G.setdefault(u, []).append(v)
-        
+
     for u,neighbor in G.items():
         for v in neighbor:
             if u not in G[v]:
@@ -232,5 +232,5 @@ if __name__ == "__main__":
         print(f"路径上的节点数: {len(path)}")
         # plot_network_with_path(filepath, path, diameter,with_path=False)
         # plot_network_with_path(filepath, path, diameter,with_path=True)
-        plot_network_with_one_way_edges(filepath,dpi=300)
+        # plot_network_with_one_way_edges(filepath,dpi=300)
         
