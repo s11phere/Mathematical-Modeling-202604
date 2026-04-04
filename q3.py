@@ -98,17 +98,17 @@ def main():
             res = iterate_remove_node(G, target, coeff, update_freq=50)
 
             # 绘图：移除节点比例 vs 最大连通分量大小
-            # x = [i / node_cnt for i in range(len(res) + 1)]
-            # y = [1.0] + [r / node_cnt for r in res]
-            # plt.figure()  # 新窗口绘制最终曲线
-            # plt.plot(x, y, marker='o', linestyle='-', linewidth=1.5, markersize=3)
-            # plt.xlabel("Fraction of Removed Nodes")
-            # plt.ylabel("Largest Component Size")
-            # plt.grid(True, alpha=0.3)
-            # plt.xlim(0, 0.4)
-            # plt.ylim(0, 1)
-            # plt.tight_layout()
-            # plt.show(block=True)  # 阻塞显示最终结果
+            x = [i / node_cnt for i in range(len(res) + 1)]
+            y = [1.0] + [r / node_cnt for r in res]
+            plt.figure()  # 新窗口绘制最终曲线
+            plt.plot(x, y, marker='o', linestyle='-', linewidth=1.5, markersize=3)
+            plt.xlabel("Fraction of Removed Nodes")
+            plt.ylabel("Largest Component Size")
+            plt.grid(True, alpha=0.3)
+            plt.xlim(0, 0.4)
+            plt.ylim(0, 1)
+            plt.tight_layout()
+            plt.show(block=True)  # 阻塞显示最终结果
             
             area = sum(res) / (node_cnt * node_cnt)
             results_df.loc[coeff, city_name] = area

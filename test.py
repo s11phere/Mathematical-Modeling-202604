@@ -1,15 +1,16 @@
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
+import glob
 
-df = pd.read_csv("heuristic_coefficient_results.csv", index_col=0)
-
-plt.figure(figsize=(12, 6))
-sns.heatmap(df, annot=True, fmt=".4f", cmap="YlGnBu", 
-            cbar_kws={'label': 'Area under curve'})
-plt.title("Performance under Different Coefficients")
-plt.ylabel("Coefficient")
-plt.xlabel("City")
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
+# 读取所有生成的 CSV 文件
+for file in glob.glob("*_res.csv"):
+    w=17894
+    df = pd.read_csv(file, header=None, names=["step", "component_size"])
+    plt.figure()
+    plt.plot(df["step"]/w, df["component_size"]/w, marker='o', linestyle='-', linewidth=1, markersize=3)
+    plt.xlabel("Deletion Step")
+    plt.ylabel("Largest Component Size")
+    plt.title(file.replace("_res.csv", ""))
+    plt.grid(True)
+    plt.savefig(file.replace(".csv", ".png"), dpi=150)
+    plt.close()
