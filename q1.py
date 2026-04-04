@@ -1,3 +1,5 @@
+from logging import raiseExceptions
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -6,6 +8,9 @@ from scipy import stats
 import os
 from matplotlib.collections import LineCollection
 import heapq
+import powerlaw
+import powerlaw
+import matplotlib.ticker as ticker
 
 city_files = [
     "cases/Chengdu_Edgelist.csv",
@@ -70,15 +75,13 @@ def get_processed_graph(df: pd.DataFrame, city_name="", plot=False, include_leng
         # print(f"component {comp_cnt}, nodes: {len(comp_nodes)}, diameter: {diameter}")
 
         comp_cnt += 1
-
+    
     print(f"total components: {comp_cnt}")
     common_keys = set(d.keys()) & set(cnt.keys())
     sizes = [cnt[k] for k in common_keys]
     diams = [d[k] for k in common_keys]
 
     if plot:
-
-
         plt.figure(figsize=(8, 6))
         plt.scatter(sizes, diams, s=3, alpha=0.6)
         plt.xscale('log')
@@ -101,15 +104,14 @@ def get_processed_graph(df: pd.DataFrame, city_name="", plot=False, include_leng
 
     new_G = {}
     for _, row in df.iterrows():
-        u = row['START_NODE']
-        v = row['END_NODE']
+        u = row['START_NODE'].astype(np.int64)
+        v = row['END_NODE'].astype(np.int64)
         w = row['LENGTH']
         if u not in removed and v not in removed:
             if include_length:
                 new_G.setdefault(u, []).append((v, w))
             else:
-                new_G.setdefault(u, [].append(v))
-
+                new_G.setdefault(u, []).append(v)
     return new_G, node_component
 
 
@@ -171,13 +173,170 @@ def build_graph(df: pd.DataFrame):
         graph[node] = list(set(graph[node]))
     return graph
 
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+from collections import Counter
+from scipy import stats
+import powerlaw
 
-def degree_dist(G: dict):
-    """计算度序列及度分布频数"""
+def degree_dist(G: dict, plot_fit=True, use_powerlaw_lib=True):
+    """
+    计算度序列及度分布频数，并用多种分布拟合（对数正态、指数、幂律）。
+    
+    参数:
+        G: dict, 邻接表 {node: [neighbors]}
+        plot_fit: bool, 是否绘制拟合对比图
+        use_powerlaw_lib: bool, 是否同时使用 powerlaw 库进行幂律拟合（需要安装）
+    
+    返回:
+        deg: list, 度序列
+        deg_counter: Counter, 度分布频数
+        fit_summary: dict, 包含各分布的拟合参数和对数似然值
+    """
     deg = [len(neigh) for neigh in G.values()]
     deg_counter = Counter(deg)
+    fit_summary = {}
+    
+    # ------------------------------------------------------------
+    # 1. 使用 scipy 进行多种分布拟合
+    # ------------------------------------------------------------
+    deg_array = np.array(deg)
+    # 过滤掉零度（若有）
+    deg_array = deg_array[deg_array > 0]
+    
+    # 1.1 对数正态分布
+    try:
+        shape, loc, scale = stats.lognorm.fit(deg_array, floc=0)
+        loglik_ln = np.sum(stats.lognorm.logpdf(deg_array, shape, loc=0, scale=scale))
+        fit_summary['lognormal'] = {
+            'params': (shape, scale),
+            'log_likelihood': loglik_ln,
+            'description': f'Log-normal (σ={shape:.3f}, μ={np.log(scale):.3f})'
+        }
+    except Exception as e:
+        print(f"对数正态拟合失败: {e}")
+        fit_summary['lognormal'] = None
+    
+    # 1.2 指数分布
+    try:
+        loc_exp, scale_exp = stats.expon.fit(deg_array, floc=0)   # scale = 1/λ
+        loglik_exp = np.sum(stats.expon.logpdf(deg_array, loc=0, scale=scale_exp))
+        fit_summary['exponential'] = {
+            'params': (scale_exp,),
+            'log_likelihood': loglik_exp,
+            'description': f'Exponential (λ={1/scale_exp:.3f})'
+        }
+    except Exception as e:
+        print(f"指数分布拟合失败: {e}")
+        fit_summary['exponential'] = None
+    
+    # 1.3 幂律分布（scipy 的连续幂律，需要指定 xmin）
+    try:
+        # 只拟合尾部（度数 >= xmin），xmin 取数据中位数以上的某个值，或简单取 min(deg_array)
+        # 这里简化：拟合所有正度数，但 scipy 的 powerlaw 要求数据在 [0,1] 区间，需缩放
+        # 更严谨的做法是使用 powerlaw 库，或者只拟合尾部。为方便，这里使用 powerlaw 库（见下文）
+        # 跳过 scipy 幂律，直接用 powerlaw 库
+        pass
+    except:
+        pass
+    
+    # ------------------------------------------------------------
+    # 2. 使用 powerlaw 库进行幂律拟合（更专业）
+    # ------------------------------------------------------------
+    if use_powerlaw_lib:
+        try:
+            fit_pl = powerlaw.Fit(deg, discrete=True, verbose=False)
+            alpha = fit_pl.power_law.alpha
+            xmin = fit_pl.power_law.xmin
+            # 计算对数似然（powerlaw 库内部提供了）
+            loglik_pl = fit_pl.power_law.loglikelihood
+            fit_summary['powerlaw'] = {
+                'params': (alpha, xmin),
+                'log_likelihood': loglik_pl,
+                'description': f'Power law (γ={alpha:.3f}, xmin={xmin})'
+            }
+            # 与指数分布比较的 p 值
+            R, p_exp = fit_pl.distribution_compare('power_law', 'exponential', normalized_ratio=True)
+            fit_summary['powerlaw']['p_vs_exponential'] = p_exp
+            print(f"幂律拟合 (powerlaw库): γ = {alpha:.3f}, xmin = {xmin}, p(vs exp) = {p_exp:.3f}")
+        except Exception as e:
+            print(f"powerlaw 库拟合失败: {e}")
+            fit_summary['powerlaw'] = None
+    else:
+        fit_summary['powerlaw'] = None
+    
+    # ------------------------------------------------------------
+    # 输出拟合对比（按对数似然排序）
+    # ------------------------------------------------------------
+    print("\n=== 分布拟合对比（对数似然值，越大越好）===")
+    valid_fits = {k: v for k, v in fit_summary.items() if v is not None}
+    sorted_fits = sorted(valid_fits.items(), key=lambda x: x[1]['log_likelihood'], reverse=True)
+    for name, info in sorted_fits:
+        print(f"{name:12s}: {info['log_likelihood']:.2f}  ({info['description']})")
+    
+    # ------------------------------------------------------------
+    # 绘图
+    # ------------------------------------------------------------
+    if plot_fit:
+        plt.close('all')
+        fig, ax = plt.subplots(figsize=(9, 6))
+        
+        # 计算经验 CCDF（互补累积分布函数）用于展示
+        unique_deg = sorted(set(deg))
+        n_total = len(deg)
+        ccdf = [sum(1 for d in deg if d >= k) / n_total for k in unique_deg]
+        
+        # 绘制经验 CCDF 散点
+        ax.loglog(unique_deg, ccdf, 'ko', markersize=4, alpha=0.5, label='Empirical (CCDF)')
+        
+        # 为每个拟合分布绘制 CCDF 曲线
+        colors = {'lognormal': 'red', 'exponential': 'green', 'powerlaw': 'blue'}
+        linestyles = {'lognormal': '-', 'exponential': ':', 'powerlaw': '--'}
+        
+        # 对数正态分布 CCDF
+        if fit_summary.get('lognormal'):
+            shape, scale = fit_summary['lognormal']['params']
+            # 生成 x 值（从最小度数到最大度数）
+            x_vals = np.logspace(np.log10(min(unique_deg)), np.log10(max(unique_deg)), 200)
+            # 对数正态的生存函数 (1 - CDF) = CCDF
+            ccdf_ln = stats.lognorm.sf(x_vals, shape, loc=0, scale=scale)
+            ax.loglog(x_vals, ccdf_ln, color=colors['lognormal'], linestyle=linestyles['lognormal'],
+                      label=fit_summary['lognormal']['description'])
+        
+        # 指数分布 CCDF
+        if fit_summary.get('exponential'):
+            scale_exp = fit_summary['exponential']['params'][0]
+            ccdf_exp = stats.expon.sf(x_vals, loc=0, scale=scale_exp)
+            ax.loglog(x_vals, ccdf_exp, color=colors['exponential'], linestyle=linestyles['exponential'],
+                      label=fit_summary['exponential']['description'])
+        
+        # 幂律分布 CCDF（使用 powerlaw 库的绘图功能，或者手动）
+        if fit_summary.get('powerlaw'):
+            # 可以直接调用 powerlaw 库的绘图方法，但需要传入 ax
+            fit_pl = powerlaw.Fit(deg, discrete=True, verbose=False)
+            # 注意：plot_ccdf 会新开图，这里用自定义方式
+            alpha = fit_summary['powerlaw']['params'][0]
+            xmin_pl = fit_summary['powerlaw']['params'][1]
+            # 幂律 CCDF: P(X>=x) = (x/xmin)^(-alpha+1)  对于 x >= xmin
+            x_power = np.logspace(np.log10(xmin_pl), np.log10(max(unique_deg)), 100)
+            ccdf_power = (x_power / xmin_pl) ** (-alpha + 1)
+            ax.loglog(x_power, ccdf_power, color=colors['powerlaw'], linestyle=linestyles['powerlaw'],
+                      label=fit_summary['powerlaw']['description'])
+        
+        ax.set_xlabel('Degree (k)')
+        ax.set_ylabel('P(K ≥ k)')
+        ax.legend()
+        
+        # 关闭科学计数法
+        ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
+        ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
+        ax.ticklabel_format(style='plain', axis='both')
+        
+        plt.tight_layout()
+        plt.show()
+    
     return deg, deg_counter
-
 
 def cluster(G: dict):
     """计算平均聚类系数，G 的值为 (邻居, 权重) 列表"""
