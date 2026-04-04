@@ -19,6 +19,9 @@ import matplotlib.pyplot as plt
 import math
 from q1 import get_processed_graph
 import statistics
+import heapq
+import numpy as np
+
 
 
 
@@ -439,6 +442,122 @@ def plot_robustness_line(G,d,n,D,N, city_name="City", output_dir="robustness_lin
     
     return x, y
 
+
+
+
+
+def eccentricity_distribution(G, max_components=1):
+    """
+    计算图 G 中所有节点的离心率（只考虑最大连通分量）。
+    G 格式: {node: [(neighbor, weight), ...]}  或 {node: [neighbor, ...]}（无权）
+    返回: 离心率列表（仅最大连通分量中的节点）
+    """
+    # 先提取最大连通分量
+    visited = set()
+    largest_comp = []
+    max_size = 0
+    for node in G:
+        if node in visited:
+            continue
+        comp_nodes = set()
+        stack = [node]
+        visited.add(node)
+        comp_nodes.add(node)
+        while stack:
+            cur = stack.pop()
+            for nb in G[cur]:
+                nb_node = nb[0] if isinstance(nb, tuple) else nb
+                if nb_node not in visited:
+                    visited.add(nb_node)
+                    comp_nodes.add(nb_node)
+                    stack.append(nb_node)
+        if len(comp_nodes) > max_size:
+            max_size = len(comp_nodes)
+            largest_comp = list(comp_nodes)
+    print(f"最大连通分量节点数: {max_size}")
+
+    # 构建子图（只保留最大连通分量）
+    subG = {}
+    for node in largest_comp:
+        subG[node] = G[node]
+
+    # 计算每个节点的离心率（使用 Dijkstra）
+    eccentricities = []
+    total = len(largest_comp)
+    for i, source in enumerate(largest_comp):
+        # Dijkstra
+        dist = {source: 0}
+        heap = [(0, source)]
+        while heap:
+            d, u = heapq.heappop(heap)
+            if d > dist[u]:
+                continue
+            for nb in subG[u]:
+                if isinstance(nb, tuple):
+                    v, w = nb
+                else:
+                    v, w = nb, 1  # 无权图边权设为1
+                nd = d + w
+                if v not in dist or nd < dist[v]:
+                    dist[v] = nd
+                    heapq.heappush(heap, (nd, v))
+        # 离心率 = 最大距离（忽略不可达节点，但连通分量内全部可达）
+        ecc = max(dist.values()) if dist else 0
+        eccentricities.append(ecc)
+        if (i+1) % 100 == 0:
+            print(f"进度: {i+1}/{total}")
+    return eccentricities
+
+def plot_eccentricity_distribution(csv_path, city_name="", output_dir="eccentricity"):
+    """
+    从原始CSV读取数据，清洗并构建带权图，计算节点离心率分布，
+    绘制累积分布图并保存。
+    """
+    # 读取数据
+    df = pd.read_csv(csv_path)
+    # 调用清洗函数，得到带权图（include_length=True）
+    G, node_component = get_processed_graph(df, city_name=city_name, plot=False, include_length=True)
+    print(f"原始节点数: {len(G)}")
+
+    # 计算离心率分布（只考虑最大连通分量）
+    ecc_list = eccentricity_distribution(G)
+    if not ecc_list:
+        print("无有效节点")
+        return
+
+    # 排序用于CDF
+    ecc_sorted = np.sort(ecc_list)
+    y = np.arange(1, len(ecc_sorted)+1) / len(ecc_sorted)
+
+    # 创建输出目录
+    script_dir = Path(__file__).parent
+    out_dir = script_dir / output_dir
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # 绘图
+    plt.figure(figsize=(10, 6))
+    plt.plot(ecc_sorted, y, marker='.', linestyle='-', linewidth=1)
+    plt.xlabel("Eccentricity (longest shortest path from node)")
+    plt.ylabel("Fraction of nodes")
+    plt.title(f"CDF of Node Eccentricity - {city_name}")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    img_path = out_dir / f"{city_name}_eccentricity_cdf.png"
+    plt.savefig(img_path, dpi=150)
+    plt.show()
+    print(f"图片已保存至: {img_path}")
+
+    # 可选：保存数据
+    data_path = out_dir / f"{city_name}_eccentricity.csv"
+    np.savetxt(data_path, ecc_sorted, delimiter=',', header='eccentricity', comments='')
+    print(f"数据已保存至: {data_path}")
+
+
+
+
+
+
+
 if __name__ == "__main__":
 
     city_files = [
@@ -455,17 +574,14 @@ if __name__ == "__main__":
 
 
     for city_file in city_files:
+
+        if city_file == "cases/Qingdao_Edgelist.csv" or city_file == "cases/Chengdu_Edgelist.csv" :
+            continue
+
         csv_path = Path(__file__).parent / city_file
         city_name = csv_path.stem.replace('_Edgelist', '')
 
-        print(f"\n========== 处理 {city_name} (网格对比) ==========")
-        df = pd.read_csv(csv_path)
-        G,_= get_processed_graph(df, city_name=city_name, plot=False, include_length=False)
+        print(f"\n========== 处理 {city_name} =============")
 
-        print(f"成功读取并清洗 {city_name} 道路记录")
-        print(f"清洗后节点数: {len(G)}")
-        print(f"最大连通分量: {max_link(G)}")
-
-        plot_robustness_line(G,20,2,40,10,city_name=city_name)
-
+        plot_eccentricity_distribution(csv_path, city_name=city_name)
 
