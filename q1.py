@@ -71,11 +71,13 @@ def get_processed_graph(df: pd.DataFrame, city_name="", plot=False, include_leng
 
         comp_cnt += 1
 
+    print(f"total components: {comp_cnt}")
+    common_keys = set(d.keys()) & set(cnt.keys())
+    sizes = [cnt[k] for k in common_keys]
+    diams = [d[k] for k in common_keys]
+
     if plot:
-        print(f"total components: {comp_cnt}")
-        common_keys = set(d.keys()) & set(cnt.keys())
-        sizes = [cnt[k] for k in common_keys]
-        diams = [d[k] for k in common_keys]
+
 
         plt.figure(figsize=(8, 6))
         plt.scatter(sizes, diams, s=3, alpha=0.6)
@@ -106,7 +108,7 @@ def get_processed_graph(df: pd.DataFrame, city_name="", plot=False, include_leng
             if include_length:
                 new_G.setdefault(u, []).append((v, w))
             else:
-                new_G.setdefault(u, [].apppend(v))
+                new_G.setdefault(u, [].append(v))
 
     return new_G, node_component
 
