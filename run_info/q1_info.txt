@@ -1,0 +1,182 @@
+Current City: Chengdu
+total components: 157
+remove 142 components, 406 nodes
+  节点数: 17894
+拟合时使用度数 <= 5 的数据点，共 17832 个（原始正度数 17894 个）
+
+=== 分布拟合对比===
+lognormal   : -27360.69  (Log-normal (σ=0.421, μ=0.981))
+exponential : -36652.75  (Exponential (λ=0.348))
+  最小度: 1, 最大度: 11
+  度分布:
+    deg 1: 2031
+    deg 2: 3202
+    deg 3: 7738
+    deg 4: 4718
+    deg 5: 143
+    deg 6: 35
+    deg 7: 15
+    deg 8: 8
+    deg 9: 2
+    deg 10: 1
+    deg 11: 1
+  平均聚类系数: 0.0413
+total_nodes: 18300, max_node_cnt: 17567, connected: False
+  直径（最大连通分量）: 222904.0660978446
+
+Current City: Dalian
+total components: 390
+remove 370 components, 825 nodes
+  节点数: 12780
+拟合时使用度数 <= 5 的数据点，共 12766 个（原始正度数 12780 个）
+
+=== 分布拟合对比===
+lognormal   : -19293.28  (Log-normal (σ=0.432, μ=0.932))
+exponential : -25665.00  (Exponential (λ=0.364))
+  最小度: 1, 最大度: 7
+  度分布:
+    deg 1: 1800
+    deg 2: 2129
+    deg 3: 6406
+    deg 4: 2366
+    deg 5: 65
+    deg 6: 13
+    deg 7: 1
+  平均聚类系数: 0.0482
+total_nodes: 13605, max_node_cnt: 12370, connected: False
+  直径（最大连通分量）: 274714.8555462158
+
+Current City: Dongguan
+total components: 130
+remove 116 components, 331 nodes
+  节点数: 7984
+拟合时使用度数 <= 5 的数据点，共 7977 个（原始正度数 7984 个）
+
+=== 分布拟合对比===
+lognormal   : -12163.76  (Log-normal (σ=0.440, μ=0.926))
+exponential : -16018.22  (Exponential (λ=0.365))
+  最小度: 1, 最大度: 7
+  度分布:
+    deg 1: 1156
+    deg 2: 1482
+    deg 3: 3666
+    deg 4: 1624
+    deg 5: 49
+    deg 6: 6
+    deg 7: 1
+  平均聚类系数: 0.0374
+total_nodes: 8315, max_node_cnt: 7658, connected: False
+  直径（最大连通分量）: 96547.06559554298
+
+Current City: Harbin
+total components: 131
+remove 85 components, 247 nodes
+  节点数: 10480
+拟合时使用度数 <= 5 的数据点，共 10468 个（原始正度数 10480 个）
+
+=== 分布拟合对比===
+lognormal   : -16140.22  (Log-normal (σ=0.439, μ=0.947))
+exponential : -21228.04  (Exponential (λ=0.358))
+  最小度: 1, 最大度: 7
+  度分布:
+    deg 1: 1469
+    deg 2: 1650
+    deg 3: 4967
+    deg 4: 2320
+    deg 5: 62
+    deg 6: 10
+    deg 7: 2
+  平均聚类系数: 0.0398
+total_nodes: 10727, max_node_cnt: 10132, connected: False
+  直径（最大连通分量）: 517801.18210095895
+
+Current City: Qingdao
+total components: 211
+remove 197 components, 474 nodes
+  节点数: 13420
+拟合时使用度数 <= 5 的数据点，共 13302 个（原始正度数 13420 个）
+
+=== 分布拟合对比===
+lognormal   : -21402.32  (Log-normal (σ=0.473, μ=0.940))
+exponential : -27053.74  (Exponential (λ=0.356))
+  最小度: 1, 最大度: 8
+  度分布:
+    deg 1: 2163
+    deg 2: 2137
+    deg 3: 5230
+    deg 4: 3585
+    deg 5: 187
+    deg 6: 92
+    deg 7: 14
+    deg 8: 12
+  平均聚类系数: 0.0303
+total_nodes: 13894, max_node_cnt: 13235, connected: False
+  直径（最大连通分量）: 223311.23149480362
+
+Current City: Quanzhou
+total components: 160
+remove 146 components, 329 nodes
+  节点数: 5343
+拟合时使用度数 <= 5 的数据点，共 5322 个（原始正度数 5343 个）
+
+=== 分布拟合对比===
+lognormal   : -8097.73  (Log-normal (σ=0.430, μ=0.946))
+exponential : -10779.59  (Exponential (λ=0.359))
+  最小度: 1, 最大度: 6
+  度分布:
+    deg 1: 661
+    deg 2: 1174
+    deg 3: 2159
+    deg 4: 1286
+    deg 5: 42
+    deg 6: 21
+  平均聚类系数: 0.0555
+total_nodes: 5672, max_node_cnt: 5164, connected: False
+  直径（最大连通分量）: 233538.0015453929
+
+Current City: Shenyang
+total components: 59
+remove 52 components, 148 nodes
+  节点数: 12852
+拟合时使用度数 <= 5 的数据点，共 12789 个（原始正度数 12852 个）
+
+=== 分布拟合对比===
+lognormal   : -19031.95  (Log-normal (σ=0.387, μ=1.018))
+exponential : -26609.10  (Exponential (λ=0.339))
+  最小度: 1, 最大度: 14
+  度分布:
+    deg 1: 1148
+    deg 2: 1894
+    deg 3: 6373
+    deg 4: 3242
+    deg 5: 132
+    deg 6: 38
+    deg 7: 13
+    deg 9: 10
+    deg 10: 1
+    deg 14: 1
+  平均聚类系数: 0.0498
+total_nodes: 13000, max_node_cnt: 12751, connected: False
+  直径（最大连通分量）: 239882.85073280727
+
+Current City: Zhengzhou
+total components: 25
+remove 22 components, 72 nodes
+  节点数: 9090
+拟合时使用度数 <= 5 的数据点，共 9078 个（原始正度数 9090 个）
+
+=== 分布拟合对比===
+lognormal   : -13664.70  (Log-normal (σ=0.415, μ=0.966))
+exponential : -18512.18  (Exponential (λ=0.354))
+  最小度: 1, 最大度: 8
+  度分布:
+    deg 1: 1000
+    deg 2: 1930
+    deg 3: 3822
+    deg 4: 2292
+    deg 5: 34
+    deg 6: 11
+    deg 8: 1
+  平均聚类系数: 0.0303
+total_nodes: 9162, max_node_cnt: 8986, connected: False
+  直径（最大连通分量）: 169907.19339391106

@@ -107,7 +107,8 @@ def pop_p(graph_dic,hitler_list): # 输入待踢点地图与踢点集合
                     continue
                 else:
                     l.append(i)
-            graph_new[nod] = l
+            if l:
+                graph_new[nod] = l
     return(graph_new)
 
 

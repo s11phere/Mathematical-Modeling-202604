@@ -1,0 +1,78 @@
+1. heurisric: degree only(randomized):
+
+Current City: Chengdu
+result: 0.0435
+
+Current City: Dalian
+result: 0.0330
+
+Current City: Dongguan
+result: 0.0397
+
+Current City: Harbin
+result: 0.0392
+
+Current City: Qingdao
+result: 0.0422
+
+Current City: Quanzhou
+result: 0.0384
+
+Current City: Shenyang
+result: 0.0456
+
+Current City: Zhengzhou
+result: 0.0434
+
+2. Heuristic: cluster_coef only(decending)
+
+Current City: Chengdu
+result: 0.0698
+
+Current City: Dalian
+result: 0.0590
+
+Current City: Dongguan
+result: 0.0738
+
+Current City: Harbin
+result: 0.0651
+
+Current City: Qingdao
+result: 0.0705
+
+Current City: Quanzhou
+result: 0.0723
+
+Current City: Shenyang
+result: 0.0811
+
+Current City: Zhengzhou
+result: 0.0718
+
+3. Heuristic: cluster_coef only(ascending)
+
+Current City: Chengdu
+result: 0.0738
+
+Current City: Dalian
+result: 0.0593
+
+Current City: Dongguan
+result: 0.0706
+
+Current City: Harbin
+result: 0.0648
+
+Current City: Qingdao
+result: 0.0659
+
+Current City: Quanzhou
+result: 0.0726
+
+Current City: Shenyang
+result: 0.0724
+
+Current City: Zhengzhou
+result: 0.0765
+
