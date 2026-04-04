@@ -14,6 +14,8 @@ from scipy.interpolate import interp1d
 import scipy.sparse as sp
 from scipy.sparse.linalg import eigs
 import networkx as nx
+from functools import partial
+
 
 
 
@@ -140,33 +142,29 @@ def attack(G: nx.Graph, l: list):
 
 
 
-def plot_list(city_name, l,n:int,N:int, output_dir:str):
+def plot_list(city_name, l, n, N, output_dir):
     """
     根据计算得到的列表 l 绘制鲁棒性曲线，并保存 CSV 数据和图片。
+    output_dir: 子目录名（如 "2_core", "3_core", "betweenness"）
     """
     script_dir = Path(__file__).parent
     output_path = script_dir / output_dir
     output_path.mkdir(parents=True, exist_ok=True)
 
-    d = len(l)-1
-    x = [n*i / N for i in range(d + 12)]   # 横坐标：移除比例
-    y = l + [0]*11
-    
+    d = len(l) - 1
+    x = [n * i / N for i in range(d + 12)]   # 横坐标：移除比例
+    y = l + [0] * 11
 
     # 保存 CSV
+    csv_path = output_path / f"{city_name}_{output_dir}_attack.csv"
     df = pd.DataFrame({"Fraction_Removed": x, "Normalized_Size": y})
-    if output_dir == "2_core":
-        csv_path = output_path / f"{city_name}_2k_attack.csv"
     df.to_csv(csv_path, index=False)
     print(f"数据已保存至: {csv_path}")
-    
 
     # 绘图
     plt.figure(figsize=(10, 6))
     plt.plot(x, y, marker='o', linestyle='-', linewidth=1.5, markersize=3)
-    if output_dir == "2_core":
-        plt.title(f"Network Strenth Curve - {city_name}_2k")
-
+    plt.title(f"Network Strength Curve - {city_name} ({output_dir})")
     plt.xlabel("Fraction of Removed Nodes")
     plt.ylabel("Normalized Largest Component Size")
     plt.grid(True, alpha=0.3)
@@ -174,70 +172,52 @@ def plot_list(city_name, l,n:int,N:int, output_dir:str):
     plt.ylim(0, 1)
     plt.tight_layout()
 
-    if output_dir == "2_core":
-        img_path = output_path / f"{city_name}_2k_attack.png"
-
+    img_path = output_path / f"{city_name}_{output_dir}_attack.png"
     plt.savefig(img_path, dpi=300)
     print(f"图片已保存至: {img_path}")
     plt.show()
 
 
-def simulation(G, city_name: str, func, n: int, lower_bound=0.01):
+def simulation(G, city_name: str, func, n: int, lower_bound=0.01, strategy_name=None):
     """
     攻击模拟函数
-
-    参数
-    ----------
-    G : nx.Graph
-        原始图（不会被修改）
-    city_name : str
-        城市名称
-    func : callable
-        策略函数，签名 func(G, n) -> List[int]，返回本轮要删除的节点列表
-    n : int
-        每轮删除的节点数量
-    lower_bound : float
-        归一化最大连通分量低于此值时停止
+    strategy_name: 可选，用于指定输出子目录名。若不提供，则根据 func 自动推断。
     """
-    # 深拷贝，避免修改原图
     G = G.copy()
     N = G.number_of_nodes()
     if N == 0:
         return
 
-    records = [1.0]          # 初始归一化最大分量为 1
+    records = [1.0]
     removed_total = 0
 
     while True:
         to_remove = func(G, n)
         if not to_remove:
             break
-
-        G = attack(G, to_remove)
+        G.remove_nodes_from(to_remove)
         removed_total += len(to_remove)
-
         if G.number_of_nodes() == 0:
             largest = 0
         else:
-            largest = max_link_nx(G)
+            largest = max(len(c) for c in nx.connected_components(G))
         norm = largest / N
         records.append(norm)
-
         if norm <= lower_bound or G.number_of_nodes() == 0:
             break
 
     # 确定输出子目录
-    if func == k_core_choose:
+    if strategy_name is not None:
+        output_dir = strategy_name
+    elif func == k_core_choose:
+        # 默认 k=2，但如果调用时使用了 functools.partial 或 lambda，则无法直接获取 k
+        # 简单起见：要求调用 simulation 时传入 strategy_name
         output_dir = "2_core"
-    elif func.__name__ == 'betweenness_approx_choose':   # 介数策略接口
-        output_dir = "betweenness"
     else:
         output_dir = func.__name__
 
-    # 调用已有的绘图保存函数
-
-    print("robustness",sum(records)*n/N,"完成")
     plot_list(city_name, records, n, N, output_dir)
+    print(city_name,"robustness",sum(records)*n/N,"完成")
 
 
     
@@ -258,7 +238,9 @@ if __name__ == "__main__":
 
     for city_name in city_names:
         G = get_data(city_name)
-        simulation(G, city_name, k_core_choose, 10)
+
+        # 3-core 攻击
+        simulation(G, city_name, partial(k_core_choose, k=3), 20, strategy_name="3_core")
 
 
         
