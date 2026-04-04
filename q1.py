@@ -4,7 +4,7 @@ import numpy as np
 from collections import Counter,deque
 from scipy import stats
 import os
-from networkx.algorithms import approximation
+from matplotlib.collections import LineCollection
 import heapq
 
 city_files = [
@@ -21,16 +21,141 @@ city_files = [
 # 存储每个城市的统计结果
 results = {}
 
-def build_graph(df:pd.DataFrame):
-    """建立有向图"""
-    neighbors = {}
+def get_processed_graph(df: pd.DataFrame, city_name):
+    G = {}
     for _, row in df.iterrows():
         u = row['START_NODE']
         v = row['END_NODE']
-        neighbors.setdefault(u, []).append(v)
-    for node in neighbors:
-        neighbors[node] = list(set(neighbors[node]))
-    return neighbors
+        w = row['LENGTH']
+        G.setdefault(u, []).append((v, w))
+
+    node_component = {}
+    comps=[]
+    d ={}
+    cnt={}
+    visited = set()
+    removed = set()
+    comp_cnt = 0
+
+    for node in G:
+        if node in visited:
+            continue
+        comp_nodes = set()
+        q = deque([node])
+        visited.add(node)
+        comp_nodes.add(node)
+        while q:
+            cur = q.popleft()
+            for nbr, _ in G[cur]:
+                if nbr not in visited:
+                    visited.add(nbr)
+                    comp_nodes.add(nbr)
+                    q.append(nbr)
+
+        # 为分量内所有节点分配相同的分量 ID
+        for n in comp_nodes:
+            node_component[n] = comp_cnt
+
+        subgraph = {n: G[n] for n in comp_nodes}
+        if len(subgraph) > 1:
+            s = next(iter(subgraph))
+            nd1, _ = dijkstra(s, subgraph)
+            _, diameter = dijkstra(nd1, subgraph)
+        else:
+            diameter = 0
+        d[comp_cnt]=diameter
+        cnt[comp_cnt]=len(comp_nodes)
+        comps.append(comp_nodes)
+        #print(f"component {comp_cnt}, nodes: {len(comp_nodes)}, diameter: {diameter}")
+
+        comp_cnt += 1
+    
+    print(f"total components: {comp_cnt}")
+    common_keys = set(d.keys()) & set(cnt.keys())
+    sizes = [cnt[k] for k in common_keys]
+    diams = [d[k] for k in common_keys]
+
+    plt.figure(figsize=(8,6))
+    plt.scatter(sizes, diams, s=3, alpha=0.6)
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel('Number of nodes (log scale)')
+    plt.ylabel('Diameter (log scale)')
+    plt.title(f'Component Size vs Diameter - {city_name} - {comp_cnt} components')
+    plt.grid(True, alpha=0.3)
+    plt.savefig(f"figures/{city_name}_size_diam_features.png", dpi=150)
+
+    removed_cnt=0
+    for idx in range(comp_cnt):
+        if sizes[idx]<10 and diams[idx]<5000:
+            removed_cnt+=1
+            for node in comps[idx]:
+                removed.add(node)
+
+    print(f"remove {removed_cnt} components, {len(removed)} nodes")
+
+    new_G={}
+    for _, row in df.iterrows():
+        u = row['START_NODE']
+        v = row['END_NODE']
+        w = row['LENGTH']
+        if u not in removed and v not in removed:
+            new_G.setdefault(u, []).append((v, w))
+
+    return new_G, node_component
+
+def plot_components(df, G, node_component):
+    # 提取所有节点的坐标
+    node_coords = {}
+    for _, row in df.iterrows():
+        u = row['START_NODE']
+        v = row['END_NODE']
+        x, y = row['XCoord'], row['YCoord']
+        if u in G:
+            node_coords.setdefault(u, (x, y))
+        if v in G:
+            node_coords.setdefault(v, (x, y))
+
+    # 所有边
+    edges = []
+    for u, neighbors in G.items():
+        for v, _ in neighbors:
+            if u in node_coords and v in node_coords:
+                edges.append([node_coords[u], node_coords[v]])
+
+    # 为每个节点获取分量 ID
+    colors = [node_component[node] for node in node_coords.keys() if node in node_component]
+
+    # 绘图
+    fig, ax = plt.subplots(figsize=(14, 12), dpi=150)
+
+    # 绘制所有边（灰色半透明）
+    if edges:
+        lc = LineCollection(edges, linewidths=0.5, colors='gray', alpha=0.3)
+        ax.add_collection(lc)
+
+    # 绘制节点（按分量着色）
+    xs = [node_coords[node][0] for node in node_coords if node in node_component]
+    ys = [node_coords[node][1] for node in node_coords if node in node_component]
+    sc = ax.scatter(xs, ys, s=5, c=colors, cmap='tab20', alpha=0.8, edgecolors='none')
+
+    ax.set_aspect('equal')
+    ax.set_title("Network Components with Different Colors")
+    ax.set_xlabel("XCoord")
+    ax.set_ylabel("YCoord")
+    plt.tight_layout()
+    plt.show()
+        
+def build_graph(df:pd.DataFrame):
+    """建立有向图"""
+    graph = {}
+    for _, row in df.iterrows():
+        u = row['START_NODE']
+        v = row['END_NODE']
+        graph.setdefault(u, []).append(v)
+    for node in graph:
+        graph[node] = list(set(graph[node]))
+    return graph
 
 def degree_dist(neighbors:dict):
     """计算度序列及度分布频数"""
@@ -38,21 +163,24 @@ def degree_dist(neighbors:dict):
     deg_counter = Counter(deg)
     return deg, deg_counter
 
-def cluster(neighbors:dict):
-    """计算平均聚类系数"""
+def cluster(G: dict):
+    """计算平均聚类系数，G 的值为 (邻居, 权重) 列表"""
     cluster_coef = {}
-    for cur, neighbor in neighbors.items():
-        n = len(neighbor)
+    for cur, neighbor in G.items():
+        # 提取邻居节点 ID（忽略权重）
+        nbr_ids = [nbr for nbr, _ in neighbor]
+        n = len(nbr_ids)
         if n < 2:
             cluster_coef[cur] = 0
             continue
         max_possible = n * (n - 1) / 2
         actual = 0
+        nbr_set = set(nbr_ids)
         for i in range(n):
-            u = neighbor[i]
+            u = nbr_ids[i]
             for j in range(i+1, n):
-                v = neighbor[j]
-                if v in neighbors.get(u, []):
+                v = nbr_ids[j]
+                if any(nbr == v for nbr, _ in G.get(u, [])):
                     actual += 1
         cluster_coef[cur] = actual / max_possible
     avg_c = np.mean(list(cluster_coef.values())) if cluster_coef else 0
@@ -122,77 +250,89 @@ def compute_diameter(df:pd.DataFrame):
 
     return diameter
 
-for filepath in city_files:
-    city_name = os.path.basename(filepath).replace("_Edgelist.csv", "")
-    print(f"\nCurrent City: {city_name}")
-    df = pd.read_csv(filepath)
-    
-    # 构建无向邻居字典
-    neighbors = build_graph(df)
-    node_cnt = len(neighbors)
-    print(f"  节点数: {node_cnt}")
-    
-    # 度分布
-    deg_seq, deg_cnt = degree_dist(neighbors)
-    max_deg = max(deg_seq)
-    min_deg = min(deg_seq)
-    print(f"  最小度: {min_deg}, 最大度: {max_deg}")
-    print("  度分布:")
-    for d in sorted(deg_cnt):
-        print(f"    deg {d}: {deg_cnt[d]}")
-    
-    # 聚类系数
-    avg_c, cluster_coef_dict = cluster(neighbors)
-    print(f"  平均聚类系数: {avg_c:.4f}")
-    
-    # 直径
-    diam = compute_diameter(df)
-    print(f"  直径（最大连通分量）: {diam}")
-    
-    # 保存结果
-    results[city_name] = {
-        "nodes": node_cnt,
-        "min_deg": min_deg,
-        "max_deg": max_deg,
-        "deg_dist": deg_cnt,
-        "avg_clustering": avg_c,
-        "diameter": diam,
-        "cluster_coef_dict": cluster_coef_dict
-    }
-    
-    # 绘制度分布直方图
-    plt.figure()
-    deg_vals = list(deg_cnt.keys())
-    freq = list(deg_cnt.values())
-    plt.bar(deg_vals, freq, width=0.8)
-    plt.xlabel("Degree")
-    plt.ylabel("Frequency (log scale)")
-    plt.title(f"Degree Distribution - {city_name}")
-    plt.savefig(f"figures/{city_name}_deg_dist.png", dpi=150)
-    plt.close()
-    
-    # 绘制聚类系数分布直方图
-    cluster_vals = list(cluster_coef_dict.values())
-    plt.figure()
-    plt.hist(cluster_vals, bins=np.arange(0, 1.00, 0.02))
-    plt.xlabel("Clustering Coefficient")
-    plt.ylabel("Count")
-    plt.title(f"Clustering Coefficient Distribution - {city_name}")
-    plt.savefig(f"figures/{city_name}_clust_dist.png", dpi=150)
-    plt.close()
+def main():
+    for filepath in city_files:
+        city_name = os.path.basename(filepath).replace("_Edgelist.csv", "")
+        print(f"\nCurrent City: {city_name}")
+        df = pd.read_csv(filepath)
+        
+        # 构建无向邻居字典
+        G, node_comp = get_processed_graph(df,city_name)
+        node_cnt = len(G)
+        print(f"  节点数: {node_cnt}")
+        
+        # 度分布
+        deg_seq, deg_cnt = degree_dist(G)
+        max_deg = max(deg_seq)
+        min_deg = min(deg_seq)
+        print(f"  最小度: {min_deg}, 最大度: {max_deg}")
+        print("  度分布:")
+        for d in sorted(deg_cnt):
+            print(f"    deg {d}: {deg_cnt[d]}")
+        
+        # 聚类系数
+        avg_c, cluster_coef_dict = cluster(G)
+        print(f"  平均聚类系数: {avg_c:.4f}")
+        
+        # 直径
+        diam = compute_diameter(df)
+        print(f"  直径（最大连通分量）: {diam}")
+        
+        # 保存结果
+        results[city_name] = {
+            "nodes": node_cnt,
+            "min_deg": min_deg,
+            "max_deg": max_deg,
+            "deg_dist": deg_cnt,
+            "avg_clustering": avg_c,
+            "diameter": diam,
+            "cluster_coef_dict": cluster_coef_dict
+        }
+        
+        # 绘制度分布直方图
+        plt.figure()
+        deg_vals = list(deg_cnt.keys())
+        freq = list(deg_cnt.values())
+        plt.bar(deg_vals, freq, width=0.8)
+        plt.xlabel("Degree")
+        plt.ylabel("Frequency (log scale)")
+        plt.title(f"Degree Distribution - {city_name}")
+        plt.savefig(f"figures/{city_name}_deg_dist.png", dpi=150)
+        plt.close()
+        
+        # 绘制聚类系数分布直方图
+        cluster_vals = list(cluster_coef_dict.values())
+        plt.figure()
+        plt.hist(cluster_vals, bins=np.arange(0, 1.00, 0.02))
+        plt.xlabel("Clustering Coefficient")
+        plt.ylabel("Count")
+        plt.title(f"Clustering Coefficient Distribution - {city_name}")
+        plt.savefig(f"figures/{city_name}_clust_dist.png", dpi=150)
+        plt.close()
 
-# 汇总输出
-print("\n===== result ======")
-summary_df = pd.DataFrame([
-    {
-        "City": city,
-        "Nodes": info["nodes"],
-        "MinDeg": info["min_deg"],
-        "MaxDeg": info["max_deg"],
-        "AvgClust": info["avg_clustering"],
-        "Diameter": info["diameter"],
-    }
-    for city, info in results.items()
-])
-print(summary_df.to_string(index=False))
-summary_df.to_csv("network_summary.csv", index=False)
+    # 汇总输出
+    print("\n===== result ======")
+    summary_df = pd.DataFrame([
+        {
+            "City": city,
+            "Nodes": info["nodes"],
+            "MinDeg": info["min_deg"],
+            "MaxDeg": info["max_deg"],
+            "AvgClust": info["avg_clustering"],
+            "Diameter": info["diameter"],
+        }
+        for city, info in results.items()
+    ])
+    print(summary_df.to_string(index=False))
+    summary_df.to_csv("network_summary.csv", index=False)
+
+# def main():
+#     for filepath in city_files:
+#         city_name = os.path.basename(filepath).replace("_Edgelist.csv", "")
+#         print(f"\nCurrent City: {city_name}")
+#         df = pd.read_csv(filepath)
+        
+#         # plot_components(df,G,node_comp)
+
+if __name__=="__main__":
+    main()

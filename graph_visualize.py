@@ -4,6 +4,7 @@ from matplotlib.collections import LineCollection
 import heapq
 from collections import deque
 import os
+from q1 import build_graph
 
 city_files = [
     "cases/Chengdu_Edgelist.csv",
@@ -106,7 +107,7 @@ def plot_network_with_path(csv_file, path_nodes, diameter=None, figsize=(12, 10)
     """绘制整个网络，并用红色高亮指定的路径"""
     df = pd.read_csv(csv_file)
     
-    # 提取所有节点的坐标（以第一次出现的 START_NODE 为准）
+    # 提取所有节点的坐标
     node_coords = {}
     for _, row in df.iterrows():
         node = row['START_NODE']
@@ -163,6 +164,65 @@ def plot_network_with_path(csv_file, path_nodes, diameter=None, figsize=(12, 10)
     else:
         plt.savefig(f"figures/{city_name}_graph_with_edge_and_diam.png", dpi=300)
 
+def plot_network_with_one_way_edges(csv_file, figsize=(12, 10), dpi=150):
+    """绘制整个网络，并用红色高亮单向路径"""
+    df = pd.read_csv(csv_file)
+    
+    # 提取所有节点的坐标
+    node_coords = {}
+    for _, row in df.iterrows():
+        node = row['START_NODE']
+        x, y = row['XCoord'], row['YCoord']
+        if node not in node_coords:
+            node_coords[node] = (x, y)
+    
+    edges = []
+    for _, row in df.iterrows():
+        u = row['START_NODE']
+        v = row['END_NODE']
+        if u in node_coords and v in node_coords:
+            edges.append([(node_coords[u][0], node_coords[u][1]),
+                          (node_coords[v][0], node_coords[v][1])])
+    
+    fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
+    
+    # 绘制所有边
+    lc = LineCollection(edges, linewidths=0.5, colors='gray', alpha=0.3)
+    ax.add_collection(lc)
+
+    directed_edges = []
+    G = {}
+    for _, row in df.iterrows():
+        u = row['START_NODE']
+        v = row['END_NODE']
+        G.setdefault(u, []).append(v)
+        
+    for u,neighbor in G.items():
+        for v in neighbor:
+            if u not in G[v]:
+                directed_edges.append([(node_coords[u][0], node_coords[u][1]),
+                          (node_coords[v][0], node_coords[v][1])])    
+    
+    # 绘制所有单向边
+    print(len(directed_edges))
+    lc_path = LineCollection(directed_edges, linewidths=2, colors='red', alpha=1)
+    ax.add_collection(lc_path)
+    
+    # 绘制所有节点
+    xs = [c[0] for c in node_coords.values()]
+    ys = [c[1] for c in node_coords.values()]
+    ax.scatter(xs, ys, s=1, c='lightblue', alpha=0.6, edgecolors='none')
+
+    ax.set_aspect('equal')
+    title = "Network with One-Way Path"
+    ax.set_title(title)
+    ax.set_xlabel("XCoord")
+    ax.set_ylabel("YCoord")
+    plt.tight_layout()
+
+    plt.show()
+    
+
 if __name__ == "__main__":
     for filepath in city_files:
         city_name = os.path.basename(filepath).replace("_Edgelist.csv", "")
@@ -170,6 +230,7 @@ if __name__ == "__main__":
         diameter, path = compute_diameter(df)
         print(f"近似直径长度: {diameter}")
         print(f"路径上的节点数: {len(path)}")
-        plot_network_with_path(filepath, path, diameter,with_path=False)
-        plot_network_with_path(filepath, path, diameter,with_path=True)
+        # plot_network_with_path(filepath, path, diameter,with_path=False)
+        # plot_network_with_path(filepath, path, diameter,with_path=True)
+        plot_network_with_one_way_edges(filepath,dpi=300)
         
