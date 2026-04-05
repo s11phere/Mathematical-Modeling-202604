@@ -1,0 +1,42 @@
+
+Radious: 300
+
+cases/Chengdu_filtered_Edgelist.csv
+3376 nodes removed, result: 0.0465647
+3383 nodes removed, result: 0.0475167
+3349 nodes removed, result: 0.0476091
+
+cases/Dalian_filtered_Edgelist.csv
+2353 nodes removed, result: 0.0286058
+2356 nodes removed, result: 0.0284666
+2405 nodes removed, result: 0.0304994
+
+cases/Dongguan_filtered_Edgelist.csv
+1798 nodes removed, result: 0.042528
+1753 nodes removed, result: 0.0408957
+1780 nodes removed, result: 0.0437063
+
+cases/Harbin_filtered_Edgelist.csv
+2502 nodes removed, result: 0.0533319
+2535 nodes removed, result: 0.0523079
+2471 nodes removed, result: 0.048823
+
+cases/Qingdao_filtered_Edgelist.csv
+2463 nodes removed, result: 0.0307766
+2512 nodes removed, result: 0.0318293
+2634 nodes removed, result: 0.0302824
+
+cases/Quanzhou_filtered_Edgelist.csv
+1475 nodes removed, result: 0.057191
+1437 nodes removed, result: 0.0523753
+1434 nodes removed, result: 0.0510735
+
+cases/Shenyang_filtered_Edgelist.csv
+3059 nodes removed, result: 0.0579646
+2873 nodes removed, result: 0.0578814
+2941 nodes removed, result: 0.0626931
+
+cases/Zhengzhou_filtered_Edgelist.csv
+2272 nodes removed, result: 0.0580762
+2146 nodes removed, result: 0.0579194
+2096 nodes removed, result: 0.0546973
