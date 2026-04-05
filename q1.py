@@ -6,8 +6,6 @@ from scipy import stats
 import os
 from matplotlib.collections import LineCollection
 import heapq
-import powerlaw
-import powerlaw
 import matplotlib.ticker as ticker
 
 city_files = [
@@ -21,7 +19,6 @@ city_files = [
     "cases/Zhengzhou_Edgelist.csv"
 ]
 
-# 存储每个城市的统计结果
 results = {}
 
 
@@ -56,7 +53,6 @@ def get_processed_graph(df: pd.DataFrame, city_name="", plot=False, include_leng
                     comp_nodes.add(nbr)
                     q.append(nbr)
 
-        # 为分量内所有节点分配相同的分量 ID
         for n in comp_nodes:
             node_component[n] = comp_cnt
 
@@ -73,7 +69,7 @@ def get_processed_graph(df: pd.DataFrame, city_name="", plot=False, include_leng
         # print(f"component {comp_cnt}, nodes: {len(comp_nodes)}, diameter: {diameter}")
 
         comp_cnt += 1
-    
+
     print(f"total components: {comp_cnt}")
     common_keys = set(d.keys()) & set(cnt.keys())
     sizes = [cnt[k] for k in common_keys]
@@ -125,26 +121,19 @@ def plot_components(df, G, node_component):
         if v in G:
             node_coords.setdefault(v, (x, y))
 
-    # 所有边
     edges = []
     for u, neighbors in G.items():
         for v, _ in neighbors:
             if u in node_coords and v in node_coords:
                 edges.append([node_coords[u], node_coords[v]])
 
-    # 为每个节点获取分量 ID
     colors = [node_component[node]
               for node in node_coords.keys() if node in node_component]
-
-    # 绘图
     fig, ax = plt.subplots(figsize=(14, 12), dpi=150)
 
-    # 绘制所有边（灰色半透明）
-    if edges:
-        lc = LineCollection(edges, linewidths=0.5, colors='gray', alpha=0.3)
-        ax.add_collection(lc)
+    lc = LineCollection(edges, linewidths=0.5, colors='gray', alpha=0.3)
+    ax.add_collection(lc)
 
-    # 绘制节点（按分量着色）
     xs = [node_coords[node][0]
           for node in node_coords if node in node_component]
     ys = [node_coords[node][1]
@@ -161,7 +150,6 @@ def plot_components(df, G, node_component):
 
 
 def build_graph(df: pd.DataFrame):
-    """建立有向图"""
     graph = {}
     for _, row in df.iterrows():
         u = row['START_NODE']
@@ -171,33 +159,30 @@ def build_graph(df: pd.DataFrame):
         graph[node] = list(set(graph[node]))
     return graph
 
-def degree_dist(G: dict, city_name,plot_fit=True, upper_bound=None):
-    """
-    计算度序列及度分布频数，并用多种分布拟合（对数正态、指数）。
-    """
+
+def degree_dist(G: dict, city_name, plot_fit=True, upper_bound=None):
+    """计算度序列及度分布频数"""
     deg = [len(neigh) for neigh in G.values()]
     deg_counter = Counter(deg)
     fit_summary = {}
-    
-    # 根据 upper_bound 过滤度序列（用于拟合）
-    deg_array_full = np.array([d for d in deg if d > 0])   # 去掉零度
+
+    deg_array_full = np.array([d for d in deg if d > 0])
     if upper_bound is not None:
         deg_array = deg_array_full[deg_array_full <= upper_bound]
-        print(f"拟合时使用度数 <= {upper_bound} 的数据点，共 {len(deg_array)} 个（原始正度数 {len(deg_array_full)} 个）")
     else:
         deg_array = deg_array_full
-        print(f"拟合时使用所有正度数，共 {len(deg_array)} 个")
-    
-    # 1. 对数正态分布拟合
+
+    # 对数正态分布拟合
     shape, loc, scale = stats.lognorm.fit(deg_array, floc=0)
-    loglik_ln = np.sum(stats.lognorm.logpdf(deg_array, shape, loc=0, scale=scale))
+    loglik_ln = np.sum(stats.lognorm.logpdf(
+        deg_array, shape, loc=0, scale=scale))
     fit_summary['lognormal'] = {
         'params': (shape, scale),
         'log_likelihood': loglik_ln,
         'description': f'Log-normal (σ={shape:.3f}, μ={np.log(scale):.3f})'
     }
-    
-    # 2. 指数分布拟合
+
+    # 指数分布拟合
     loc_exp, scale_exp = stats.expon.fit(deg_array, floc=0)
     loglik_exp = np.sum(stats.expon.logpdf(deg_array, loc=0, scale=scale_exp))
     fit_summary['exponential'] = {
@@ -205,68 +190,74 @@ def degree_dist(G: dict, city_name,plot_fit=True, upper_bound=None):
         'log_likelihood': loglik_exp,
         'description': f'Exponential (λ={1/scale_exp:.3f})'
     }
-    
+
     # 输出拟合对比
-    print("\n=== 分布拟合对比===")
+    print("\n=== 分布拟合对比 ===")
     valid_fits = {k: v for k, v in fit_summary.items() if v is not None}
-    sorted_fits = sorted(valid_fits.items(), key=lambda x: x[1]['log_likelihood'], reverse=True)
+    sorted_fits = sorted(valid_fits.items(),
+                         key=lambda x: x[1]['log_likelihood'], reverse=True)
     for name, info in sorted_fits:
-        print(f"{name:12s}: {info['log_likelihood']:.2f}  ({info['description']})")
-    
+        print(
+            f"{name:12s}: {info['log_likelihood']:.2f}  ({info['description']})")
+
     # 绘图
     if plot_fit:
         plt.close('all')
         fig, ax = plt.subplots(figsize=(9, 6))
-        
-        # 计算经验 CCDF（基于原始所有数据）
+
         unique_deg = sorted(set(deg))
         n_total = len(deg)
         ccdf = [sum(1 for d in deg if d >= k) / n_total for k in unique_deg]
-        ax.loglog(unique_deg, ccdf, 'ko', markersize=4, alpha=0.5, label='Empirical (all data)')
-        
-        # 生成 x 轴（用于绘制拟合曲线，覆盖拟合数据范围即可）
-        x_max_for_fit = upper_bound if upper_bound is not None else max(unique_deg)
-        x_vals = np.logspace(np.log10(min(unique_deg)), np.log10(max(unique_deg)), 200)
-        
-        colors = {'lognormal': 'red', 'exponential': 'green', 'powerlaw': 'blue'}
+        ax.loglog(unique_deg, ccdf, 'ko', markersize=4,
+                  alpha=0.5, label='Empirical (all data)')
+
+        # 生成 x 轴
+        x_max_for_fit = upper_bound if upper_bound is not None else max(
+            unique_deg)
+        x_vals = np.logspace(np.log10(min(unique_deg)),
+                             np.log10(max(unique_deg)), 200)
+
+        colors = {'lognormal': 'red',
+                  'exponential': 'green', 'powerlaw': 'blue'}
         linestyles = {'lognormal': '-', 'exponential': ':', 'powerlaw': '--'}
-        
-        # 对数正态 CCDF
+
+        # 对数正态
         if fit_summary.get('lognormal'):
             shape, scale = fit_summary['lognormal']['params']
             ccdf_ln = stats.lognorm.sf(x_vals, shape, loc=0, scale=scale)
             ax.loglog(x_vals, ccdf_ln, color=colors['lognormal'], linestyle=linestyles['lognormal'],
                       label=fit_summary['lognormal']['description'])
-        
-        # 指数 CCDF
+
+        # 指数
         if fit_summary.get('exponential'):
             scale_exp = fit_summary['exponential']['params'][0]
             ccdf_exp = stats.expon.sf(x_vals, loc=0, scale=scale_exp)
             ax.loglog(x_vals, ccdf_exp, color=colors['exponential'], linestyle=linestyles['exponential'],
                       label=fit_summary['exponential']['description'])
-        
+
         if upper_bound is not None:
-            ax.axvline(x=upper_bound, color='gray', linestyle='-.', alpha=0.5, label=f'Upper bound = {upper_bound}')
-        
+            ax.axvline(x=upper_bound, color='gray', linestyle='-.',
+                       alpha=0.5, label=f'Upper bound = {upper_bound}')
+
         ax.set_xlabel('Degree (k)')
         ax.set_ylabel('P(K ≥ k)')
         ax.legend()
-        
+
         plt.title(f"degree distribution fitting for {city_name}")
         ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
         ax.yaxis.set_major_formatter(ticker.ScalarFormatter())
         ax.ticklabel_format(style='plain', axis='both')
-        
+
         plt.tight_layout()
         plt.savefig(f"figures/{city_name}_deg_dist_fit.png", dpi=150)
-    
+
     return deg, deg_counter, fit_summary
 
+
 def cluster(G: dict):
-    """计算平均聚类系数，G 的值为 (邻居, 权重) 列表"""
+    """计算平均聚类系数"""
     cluster_coef = {}
     for cur, neighbor in G.items():
-        # 提取邻居节点 ID（忽略权重）
         nbr_ids = [nbr for nbr, _ in neighbor]
         n = len(nbr_ids)
         if n < 2:
@@ -309,7 +300,6 @@ def dijkstra(src, graph):
 
 
 def compute_diameter(df: pd.DataFrame):
-    """计算直径，考虑最大连通分量"""
     G = {}
     for _, row in df.iterrows():
         u = row['START_NODE']
@@ -352,6 +342,7 @@ def compute_diameter(df: pd.DataFrame):
 
     return diameter
 
+
 def main():
     for filepath in city_files:
         city_name = os.path.basename(filepath).replace("_Edgelist.csv", "")
@@ -365,7 +356,7 @@ def main():
         print(f"  节点数: {node_cnt}")
 
         # 度分布
-        deg_seq, deg_cnt, res = degree_dist(G,city_name,upper_bound=5)
+        deg_seq, deg_cnt, res = degree_dist(G, city_name, upper_bound=5)
         max_deg = max(deg_seq)
         min_deg = min(deg_seq)
         print(f"  最小度: {min_deg}, 最大度: {max_deg}")
@@ -379,7 +370,7 @@ def main():
 
         # 直径
         diam = compute_diameter(df)
-        print(f"  直径（最大连通分量）: {diam}")
+        print(f"  直径: {diam}")
 
         # 保存结果
         results[city_name] = {
@@ -428,14 +419,6 @@ def main():
     ])
     print(summary_df.to_string(index=False))
     summary_df.to_csv("network_summary.csv", index=False)
-
-# def main():
-#     for filepath in city_files:
-#         city_name = os.path.basename(filepath).replace("_Edgelist.csv", "")
-#         print(f"\nCurrent City: {city_name}")
-#         df = pd.read_csv(filepath)
-
-#         # plot_components(df,G,node_comp)
 
 
 if __name__ == "__main__":

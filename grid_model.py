@@ -33,7 +33,7 @@ def plot_degree_distribution(G, p, savefig=None):
     degrees = [d for n, d in G.degree()]
     degree_counts = np.bincount(degrees)
     degree_vals = np.arange(len(degree_counts))
-    # 只显示度数 >0 的部分（如果存在0度节点，也会显示）
+    # 只显示度数 >0 的部分
     mask = degree_counts > 0
     degree_vals = degree_vals[mask]
     degree_counts = degree_counts[mask]
@@ -48,8 +48,6 @@ def plot_degree_distribution(G, p, savefig=None):
               f'Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()}')
     plt.grid(axis='y', linestyle='--', alpha=0.6)
 
-    # 可选：叠加理论分布（对于规则格子，移除边后近似二项式分布，但很难解析，故不强制）
-    # 这里简单加上平均度标记
     avg_deg = 2 * G.number_of_edges() / G.number_of_nodes()
     plt.axvline(avg_deg, color='red', linestyle='--', linewidth=1.5,
                 label=f'Average degree = {avg_deg:.2f}')
@@ -59,9 +57,7 @@ def plot_degree_distribution(G, p, savefig=None):
     plt.show()
 
 def main():
-    # 参数设置
-    n = 60  # 网格大小：50x50 = 2500 个节点，足够大（可根据需要调整）
-    # 可以通过命令行参数传入 p
+    n = 60
     if len(sys.argv) > 1:
         try:
             p = float(sys.argv[1])

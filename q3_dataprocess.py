@@ -40,10 +40,6 @@ def parse_q3_data(filename="q3_data.txt"):
     return data
 
 
-
-
-
-
 def get_data(city_name:str): 
     csv_path = Path(__file__).parent / "cases" / f"{city_name}_filtered_edgelist.csv"
     df = pd.read_csv(csv_path)
@@ -58,12 +54,12 @@ def get_data(city_name:str):
     for _, row in df.iterrows():
         u = row['START_NODE']
         v = row['END_NODE']
-        # 处理坐标（可选）
+        # 处理坐标
         if 'XCoord' in df.columns and 'YCoord' in df.columns:
             if u not in node_coords:
                 node_coords[u] = (row['XCoord'], row['YCoord'])
             if v not in node_coords:
-                node_coords[v] = (row['XCoord'], row['YCoord'])  # 注意：同一行的两个节点坐标可能不同，这里简化处理
+                node_coords[v] = (row['XCoord'], row['YCoord'])
         # 添加无向边（标准化方向，避免重复）
         u, v = sorted([u, v])  # 确保 (min, max)
         length = row['LENGTH']
@@ -135,7 +131,6 @@ def parse_q5_data(filename="q5_data1.txt"):
         
        # 结果行
         res_line = lines[i]
-
         
         # 解析第一行：空格分割，最后一个是文件名，前面都是整数
         res_line = res_line.split()        

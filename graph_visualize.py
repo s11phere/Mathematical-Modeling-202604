@@ -4,7 +4,6 @@ from matplotlib.collections import LineCollection
 import heapq
 from collections import deque
 import os
-from q1 import build_graph
 
 city_files = [
     "cases/Chengdu_Edgelist.csv",
@@ -90,8 +89,8 @@ def compute_diameter(df: pd.DataFrame):
     print(f"total_nodes: {len(G)}, max_node_cnt: {max_size}, connected: {len(G)==max_size}")
 
     s = next(iter(max_graph))
-    nd1, _ = dijkstra(s, max_graph)                # 第一次，得到一端
-    nd2, diameter, prev = dijkstra_with_prev(nd1, max_graph)  # 第二次，记录前驱
+    nd1, _ = dijkstra(s, max_graph)
+    nd2, diameter, prev = dijkstra_with_prev(nd1, max_graph)
 
     # 重建从 nd1 到 nd2 的路径
     path = []
@@ -99,7 +98,7 @@ def compute_diameter(df: pd.DataFrame):
     while cur is not None:
         path.append(cur)
         cur = prev[cur]
-    path.reverse()   # 现在 path 从 nd1 到 nd2
+    path.reverse()
 
     return diameter, path
 
@@ -230,7 +229,7 @@ if __name__ == "__main__":
         diameter, path = compute_diameter(df)
         print(f"近似直径长度: {diameter}")
         print(f"路径上的节点数: {len(path)}")
-        # plot_network_with_path(filepath, path, diameter,with_path=False)
-        # plot_network_with_path(filepath, path, diameter,with_path=True)
-        # plot_network_with_one_way_edges(filepath,dpi=300)
+        plot_network_with_path(filepath, path, diameter,with_path=False)
+        plot_network_with_path(filepath, path, diameter,with_path=True)
+        plot_network_with_one_way_edges(filepath,dpi=300)
         

@@ -1,26 +1,11 @@
-import os
 import pandas as pd
 import networkx as nx
 from pathlib import Path
-from collections import defaultdict
 import random
 import matplotlib.pyplot as plt
-import math
-from q1 import get_processed_graph
-import statistics
 import heapq
-import numpy as np
-from scipy.interpolate import interp1d
-import scipy.sparse as sp
-from scipy.sparse.linalg import eigs
 import networkx as nx
-from functools import partial
-import copy
 from datetime import datetime
-
-
-
-
 
 """
 get_data(city_name:str) 接受城市名,输出nx地图
@@ -55,9 +40,9 @@ def get_data(city_name:str):
             if u not in node_coords:
                 node_coords[u] = (row['XCoord'], row['YCoord'])
             if v not in node_coords:
-                node_coords[v] = (row['XCoord'], row['YCoord'])  # 注意：同一行的两个节点坐标可能不同，这里简化处理
-        # 添加无向边（标准化方向，避免重复）
-        u, v = sorted([u, v])  # 确保 (min, max)
+                node_coords[v] = (row['XCoord'], row['YCoord'])
+        # 添加无向边
+        u, v = sorted([u, v])
         length = row['LENGTH']
         if G.has_edge(u, v):
             # 如果边已存在（例如双向记录），累加长度
@@ -72,8 +57,6 @@ def get_data(city_name:str):
 
     print(city_name,"获取成功")
     return(G)    
-
-
 
 
 
@@ -147,7 +130,6 @@ def attack(G: nx.Graph, l: list):
 
 
 
-
 def plot_list(city_name, l, n, N, output_dir):
     """
     根据计算得到的列表 l 绘制鲁棒性曲线，并保存 CSV 数据和图片。
@@ -194,10 +176,8 @@ def simulation(G, city_name: str, func, n: int, lower_bound=0.01, strategy_name=
     if N == 0:
         return
 
-    records = [1.0] # 结果记录
+    records = [1.0]
     removed_total = 0
-
-
 
     while True:
         to_remove = func(G, n)
@@ -216,12 +196,10 @@ def simulation(G, city_name: str, func, n: int, lower_bound=0.01, strategy_name=
         if norm <= lower_bound or G.number_of_nodes() == 0:
             break
 
-    # 确定输出子目录
+    # 输出子目录
     if strategy_name is not None:
         output_dir = strategy_name
     elif func == k_core_choose:
-        # 默认 k=2，但如果调用时使用了 functools.partial 或 lambda，则无法直接获取 k
-        # 简单起见：要求调用 simulation 时传入 strategy_name
         output_dir = "2_core"
     else:
         output_dir = func.__name__
@@ -232,10 +210,6 @@ def simulation(G, city_name: str, func, n: int, lower_bound=0.01, strategy_name=
     print(city_name,"robustness",robustness,"完成")
 
     return(robustness)
-
-
-    
-
 
 
 
@@ -306,7 +280,6 @@ def cross_over(cross_c_rate,parent1, parent2):
     else:
         return(parent1.copy())
 
-    
 
 
 def mutate(individual, G, mutation_rate, replace_k_range=(20,80), shuffle_l_range=(100,200)):
@@ -320,7 +293,7 @@ def mutate(individual, G, mutation_rate, replace_k_range=(20,80), shuffle_l_rang
         replace_k = random.randint(*replace_k_range)
         for _ in range(replace_k):
             node = random.choice(list(G.nodes()))
-            while node in individual_set:  # 避免重复
+            while node in individual_set:
                 node = random.choice(list(G.nodes()))
             index = random.randint(0, L - 1)
             individual[index] = node
@@ -338,16 +311,11 @@ def mutate(individual, G, mutation_rate, replace_k_range=(20,80), shuffle_l_rang
     
     return(individual)
 
-
-
 def select(population, fitnesses, tournament_size=3):
     """锦标赛选择，使用预先计算的适应度列表"""
     candidates_idx = random.sample(range(len(population)), tournament_size)
     best_idx = min(candidates_idx, key=lambda i: fitnesses[i])
     return population[best_idx]
-
-
-
 
 def evaluate_population(population, G, d):
     fitnesses = []
@@ -355,9 +323,6 @@ def evaluate_population(population, G, d):
         area, _ = list_attack_resout(G, ind, d)
         fitnesses.append(area)
     return fitnesses
-
-
-
 
 def evolve(G,pop_size=20,generations=100,cross_c_rate=0.5,mutation_rate=0.1,replace_k_range=(20,80),
            shuffle_l_range=(100,200),d=40,elite_size=5,tournament_size=3,verbose = False):
@@ -404,12 +369,6 @@ def evolve(G,pop_size=20,generations=100,cross_c_rate=0.5,mutation_rate=0.1,repl
 
     return(best_individual, best_fitness, fitness_history)
 
-
-
-
-
-
-
 def plot_fitness_curve(fitness_history, city_name, output_dir="evolution_history"):
     script_dir = Path(__file__).parent
     output_path = script_dir / output_dir
@@ -430,10 +389,6 @@ def plot_fitness_curve(fitness_history, city_name, output_dir="evolution_history
     plt.savefig(save_path, dpi=300)
     print(f"进化曲线已保存至: {save_path}")
     plt.show()
-
-
-
-
 
 def plot_best_attack(G, best_seq, d, city_name, output_dir="ga_results"):
     area, records = list_attack_resout(G, best_seq, d)
@@ -466,23 +421,13 @@ def plot_best_attack(G, best_seq, d, city_name, output_dir="ga_results"):
     print(f"图片保存至: {img_path}")
     return area
 
-
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
     city_names = ["Chengdu","Dalian","Dongguan","Harbin","Qingdao","Quanzhou","Shenyang","Zhengzhou"]
 
     city_name = "Qingdao"
 
-    G = get_data(city_name)   # 您的读取函数
+    G = get_data(city_name)
     best_seq, best_fit, hist = evolve(G, pop_size=20, generations=1000, verbose=False)
     plot_fitness_curve(hist, city_name)
-    plot_best_attack(G, best_seq, 40, city_name)   # 使用新实现的不覆盖版本
+    plot_best_attack(G, best_seq, 40, city_name)
         

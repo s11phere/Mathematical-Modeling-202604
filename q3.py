@@ -19,11 +19,11 @@ city_files = [
 ]
 
 def heuristic(G: dict, node, coeff: float):
-    """计算节点优先级：度 + coeff * 聚类系数（标准化后）"""
+    """计算节点优先级"""
     nbr_ids = G[node]
     n = len(nbr_ids)
     if n < 2:
-        return len(G[node])  # 聚类系数为0
+        return len(G[node])
     max_possible = n * (n - 1) / 2
     actual = 0
     for i in range(n):
@@ -77,7 +77,7 @@ def iterate_remove_node(G, target, coeff, update_freq=5):
 
 def main():
     # 尝试的系数列表
-    coeff_list = [0.0]  # -1.0, ..., 1.0
+    coeff_list = [0.0]
     print(coeff_list)
     # 存储结果的DataFrame：行=系数，列=城市
     results_df = pd.DataFrame(index=coeff_list, columns=[os.path.basename(f).replace("_filtered_Edgelist.csv", "") for f in city_files])
@@ -90,11 +90,10 @@ def main():
             
             # 读取数据并构建图
             df = pd.read_csv(filepath)
-            G = build_graph(df)  # 注意：build_graph 需要根据您的实现返回字典图
+            G = build_graph(df)
             node_cnt = len(G)
-            target = node_cnt * 0.01  # 停止条件：最大连通分量小于等于1%节点数
+            target = node_cnt * 0.01
             
-            # 运行删除过程（会修改G）
             res = iterate_remove_node(G, target, coeff, update_freq=50)
 
             # 绘图：移除节点比例 vs 最大连通分量大小

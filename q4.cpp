@@ -16,8 +16,8 @@ random_device rd;
 mt19937 gen(rd());
 class PointFinder {
 public:
-    PointFinder(){}
-    PointFinder(const vector<double>& xs, const vector<double>& ys, const vector<int>& ids, int targetCellsPerDim = -1) 
+    PointFinder() {}
+    PointFinder(const vector<double>& xs, const vector<double>& ys, const vector<int>& ids, int targetCellsPerDim = -1)
     {
         N = xs.size();
         minX = *min_element(xs.begin(), xs.end());
@@ -45,7 +45,7 @@ public:
         this->ys = ys;
         this->ids = ids;
     }
-    
+
     vector<int> findPointsInRadius(double qx, double qy, double radius) const {
         vector<int> result;
         if (radius < 0) return result;
@@ -63,7 +63,7 @@ public:
                 for (int idx : grid[gy * gridNumX + gx]) {
                     double dx = xs[idx] - qx;
                     double dy = ys[idx] - qy;
-                    if (dx*dx + dy*dy <= r2) {
+                    if (dx * dx + dy * dy <= r2) {
                         result.push_back(ids[idx]);
                     }
                 }
@@ -71,7 +71,7 @@ public:
         }
         return result;
     }
-    
+
 private:
     int N;
     double minX, maxX, minY, maxY;
@@ -80,11 +80,11 @@ private:
     vector<vector<int>> grid;
     vector<double> xs, ys;
     vector<int> ids;
-    
+
     int getGridIndex(double coord, double minCoord, double cellSize) const {
         int idx = static_cast<int>(floor((coord - minCoord) / cellSize));
         if (idx < 0) idx = 0;
-        if (idx >= gridNumX || idx >= gridNumY) idx = (idx >= gridNumX ? gridNumX-1 : gridNumY-1);
+        if (idx >= gridNumX || idx >= gridNumY) idx = (idx >= gridNumX ? gridNumX - 1 : gridNumY - 1);
         return idx;
     }
 };
@@ -94,15 +94,15 @@ private:
     static const int N = 70000;
     static const int M = 200000;
     static const int inf = 1e9;
-    
+
     struct eg {
         int d, id;
     };
-    struct tag{
+    struct tag {
         int id;
         double val;
     };
-    
+
     PointFinder finder;
     bool deleted[N];
     bool in_max_comp[N];
@@ -124,21 +124,21 @@ private:
     double y_coord[N];
     tag flow[N];
     vector<int> surr_nodes_rad[N];
-    
+
     inline void add(int a, int b, int val) {
         cnt++;
-        g1[a].push_back({b, cnt<<1});
-        g1[b].push_back({a, (cnt<<1)|1});
-        v1[cnt<<1] = val;
+        g1[a].push_back({ b, cnt << 1 });
+        g1[b].push_back({ a, (cnt << 1) | 1 });
+        v1[cnt << 1] = val;
     }
-    
+
     int largest_component_w() {
         memset(vis, 0, sizeof(vis));
         int best = 0;
         for (int i = 1; i <= node_cnt; ++i) {
             if (!deleted[i] && !vis[i]) {
                 queue<int> q;
-                q.push(i*2+1);
+                q.push(i * 2 + 1);
                 vis[i] = true;
                 int cnt = 0;
                 while (!q.empty()) {
@@ -146,9 +146,9 @@ private:
                     q.pop();
                     ++cnt;
                     for (auto [d, id] : g1[cur]) {
-                        if (!vis[d/2] && !deleted[d/2]) {
-                            vis[d/2] = 1;
-                            q.push(d+1);
+                        if (!vis[d / 2] && !deleted[d / 2]) {
+                            vis[d / 2] = 1;
+                            q.push(d + 1);
                         }
                     }
                 }
@@ -157,7 +157,7 @@ private:
         }
         return best;
     }
-    
+
     int largest_component() {
         memset(vis, 0, sizeof(vis));
         int best = 0;
@@ -165,7 +165,7 @@ private:
             if (!deleted[i] && !vis[i]) {
                 queue<int> q;
                 vector<int> cur_comp;
-                q.push(i*2+1);
+                q.push(i * 2 + 1);
                 cur_comp.push_back(i);
                 vis[i] = true;
                 int cnt = 0;
@@ -174,10 +174,10 @@ private:
                     q.pop();
                     ++cnt;
                     for (auto [d, id] : g1[cur]) {
-                        if (!vis[d/2] && !deleted[d/2]) {
-                            vis[d/2] = 1;
-                            cur_comp.push_back(d/2);
-                            q.push(d+1);
+                        if (!vis[d / 2] && !deleted[d / 2]) {
+                            vis[d / 2] = 1;
+                            cur_comp.push_back(d / 2);
+                            q.push(d + 1);
                         }
                     }
                 }
@@ -191,7 +191,7 @@ private:
         for (auto x : max_comp) in_max_comp[x] = 1;
         return best;
     }
-    
+
     bool bfs() {
         memset(dis, 63, sizeof(dis));
         queue<int> q;
@@ -199,9 +199,9 @@ private:
         dis[s] = pos[s] = 0;
         while (!q.empty()) {
             int cur = q.front(); q.pop();
-            if (deleted[cur/2]) continue;
+            if (deleted[cur / 2]) continue;
             for (auto [d, id] : g[cur]) {
-                if (deleted[d/2]) continue;
+                if (deleted[d / 2]) continue;
                 if (v[id] && dis[d] > inf) {
                     dis[d] = dis[cur] + 1;
                     pos[d] = 0;
@@ -212,9 +212,9 @@ private:
         }
         return false;
     }
-    
+
     int dfs(int cur, int tot) {
-        if (deleted[cur/2]) return 0;
+        if (deleted[cur / 2]) return 0;
         if (cur == t) return tot;
         int ans = 0, rem;
         for (int i = pos[cur]; i < (int)g[cur].size() && tot; ++i) {
@@ -232,7 +232,7 @@ private:
         }
         return ans;
     }
-    
+
     void dinic(int iters = 50) {
         memset(flow, 0, sizeof(flow));
         for (int i = 1; i <= node_cnt; ++i) flow[i].id = i;
@@ -241,21 +241,21 @@ private:
             memcpy(v, v1, sizeof(v));
             memset(pos, 0, sizeof(pos));
             for (int j = 0; j < N; ++j) g[j] = g1[j];
-            
+
             int s_orig = dist(gen);
             while (deleted[s_orig] || !in_max_comp[s_orig]) s_orig = dist(gen);
             int t_orig = dist(gen);
             while (deleted[t_orig] || t_orig == s_orig || !in_max_comp[t_orig]) t_orig = dist(gen);
             s = s_orig * 2 + 1;
             t = t_orig * 2;
-            
+
             int ans = 0;
             while (bfs()) ans += dfs(s, inf);
-            
+
             for (int j = 1; j <= node_cnt; ++j) {
                 if (deleted[j]) continue;
-                for (auto [d, id] : g[j*2]) {
-                    if (d == j*2 + 1) {
+                for (auto [d, id] : g[j * 2]) {
+                    if (d == j * 2 + 1) {
                         flow[j].val += inf - v[id];
                         break;
                     }
@@ -263,7 +263,7 @@ private:
             }
         }
     }
-    
+
 public:
     CityProcessor(const string& filepath) {
         cnt = 0;
@@ -287,7 +287,7 @@ public:
             surr_nodes_rad[i].clear();
         }
         max_comp.clear();
-        
+
         ifstream file(filepath);
         string line;
         getline(file, line);
@@ -314,12 +314,12 @@ public:
             }
             x_coord[node_idx[a]] = x;
             y_coord[node_idx[a]] = y;
-            add(node_idx[a]*2+1, node_idx[b]*2, 1);
+            add(node_idx[a] * 2 + 1, node_idx[b] * 2, 1);
         }
         for (int i = 1; i <= node_cnt; ++i) {
-            add(i*2, i*2+1, inf);
+            add(i * 2, i * 2 + 1, inf);
         }
-        
+
         vector<double> X, Y;
         vector<int> idx;
         X.reserve(node_cnt);
@@ -332,7 +332,7 @@ public:
         }
         finder = PointFinder(X, Y, idx);
     }
-    
+
     vector<int> run(int target, int update_freq, double rad) {
         vector<int> ans;
         int comp = node_cnt;
@@ -341,12 +341,13 @@ public:
             int iters_;
             if (comp < target * 10) {
                 iters_ = iters * comp / (target * 10);
-            } else {
+            }
+            else {
                 iters_ = iters;
             }
             comp = largest_component();
             dinic(iters_);
-            
+
             vector<tag> candidates;
             for (int i = 1; i <= node_cnt; ++i) {
                 if (!deleted[i]) {
@@ -354,21 +355,21 @@ public:
                     vector<int> surr_nodes = finder.findPointsInRadius(x_coord[i], y_coord[i], rad);
                     surr_nodes_rad[i].clear();
                     double tot = 0;
-                    int tot_cnt=0;
+                    int tot_cnt = 0;
                     for (int surr : surr_nodes) {
-                        if(!deleted[surr]){
+                        if (!deleted[surr]) {
                             surr_nodes_rad[i].push_back(surr);
                             tot_cnt++;
                             tot += flow[surr].val;
                         }
                     }
-                    candidates.back().val = tot/tot_cnt;
+                    candidates.back().val = tot / tot_cnt;
                 }
             }
             int m = min(update_freq, (int)candidates.size());
             partial_sort(candidates.begin(), candidates.begin() + m, candidates.end(),
-                        [](const tag& a, const tag& b) { return a.val > b.val; });
-            
+                [](const tag& a, const tag& b) { return a.val > b.val; });
+
             int del_cnt = 0;
             for (int i = 0; i < iters_; ++i) {
                 for (auto cur_del : surr_nodes_rad[candidates[i].id]) {
@@ -384,7 +385,7 @@ public:
             }
         }
     }
-    
+
     int getNodeCount() const { return node_cnt; }
 };
 
@@ -400,12 +401,12 @@ int main() {
         "cases/Shenyang_filtered_Edgelist.csv",
         "cases/Zhengzhou_filtered_Edgelist.csv"
     };
-    int R[10]={0,50,100,200,300,400,500,750,1000,2000};
-    for(int r:R){
-        cout<<endl<<"Radious: "<<r<<endl;
+    int R[10] = { 0,50,100,200,300,400,500,750,1000,2000 };
+    for (int r : R) {
+        cout << endl << "Radious: " << r << endl;
         for (string filepath : city_files) {
-            cout<<endl<<filepath<<endl;
-            for(int i=1;i<=3;i++){
+            cout << endl << filepath << endl;
+            for (int i = 1; i <= 3; i++) {
                 auto processor = make_unique<CityProcessor>(filepath);  // 堆分配
                 int target = processor->getNodeCount() / 100;
                 vector<int> res = processor->run(target, 50, r);

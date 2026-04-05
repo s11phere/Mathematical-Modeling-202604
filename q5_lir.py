@@ -1,15 +1,9 @@
-import pandas as pd
 import networkx as nx
 from q3_lir import get_data
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib.collections import LineCollection
-import os
 from pathlib import Path
 import random
-
-
-
 
 
 def shed_k(G: nx.Graph,k):
@@ -19,11 +13,6 @@ def shed_k(G: nx.Graph,k):
         if nx.degree(G,nod) < k:
             G_temp.remove_node(nod)
     return(G_temp)
-
-
-
-
-
 
 
 def throw(G, n):
@@ -56,12 +45,6 @@ def down_town(G):
     G_temp = throw(G_temp,n=40)
     return(G_temp)
 
-
-
-import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
-import networkx as nx
-import numpy as np
 
 def plot_network(G, figsize=(10, 8), node_size=5, edge_width=0.5, save_path=None, color_by_component=False):
     """
@@ -136,29 +119,13 @@ def plot_network(G, figsize=(10, 8), node_size=5, edge_width=0.5, save_path=None
     return fig, ax
 
 
-
-
-
 def get_capacity_network(G):
     # 给所有边添加容量属性,并实现单点分离
     for u in G.nodes():
         for v in list(G[u].keys()):
             G[u][v]['capacity'] = 1
-    
-    # for u in G.nodes():
         
     return(G)
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -166,8 +133,6 @@ if __name__ == "__main__":
     city_names = ["Chengdu","Dalian","Dongguan","Harbin","Qingdao","Quanzhou","Shenyang","Zhengzhou"]
     file_dir = Path(__file__).parent
     save_path = file_dir / "q5_demo_plot"
-
-
 
     for city_name in city_names:
         if city_name != "Qingdao":

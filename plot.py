@@ -39,8 +39,5 @@ if __name__ == "__main__":
     print(f"共读取 {len(data)} 个数字")
     print(f"统计: min={np.min(data):.3f}, max={np.max(data):.3f}, mean={np.mean(data):.3f}, std={np.std(data):.3f}")
 
-    # 绘制折线图（默认）
+    # 绘制折线图
     plot_line(data, title="Data from data.txt", savefig="line_plot.png")
-
-    # 可选：绘制直方图（取消注释下一行）
-    # plot_histogram(data, title="Histogram of Data", savefig="histogram.png")
