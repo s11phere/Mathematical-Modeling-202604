@@ -262,7 +262,7 @@ def list_attack_resout(G,attack_list:list,d=40):
         records.append(norm)
 
 
-    return(sum(records)/N,records)
+    return(sum(records)/(4*d),records)
 
 
 
@@ -395,6 +395,8 @@ def evolve(G,pop_size=20,generations=100,cross_c_rate=0.5,mutation_rate=0.1,repl
             child = mutate(child, G, mutation_rate, replace_k_range, shuffle_l_range)
             new_population.append(child)
 
+        population = new_population
+
         print("第",gen+1,"代完成")
         print("Best fitness:", best_fitness)
 
@@ -436,7 +438,7 @@ def plot_best_attack(G, best_seq, d, city_name, output_dir="ga_results"):
     area, records = list_attack_resout(G, best_seq, d)
     N = G.number_of_nodes()
     m = len(best_seq)
-    x = [i * m / N for i in range(len(records))]   # 实际删除比例
+    x = [i * d / N for i in range(len(records))]   # 实际删除比例
 
     script_dir = Path(__file__).parent
     out_path = script_dir / output_dir
@@ -479,7 +481,7 @@ if __name__ == "__main__":
     city_name = "Qingdao"
 
     G = get_data(city_name)   # 您的读取函数
-    best_seq, best_fit, hist = evolve(G, pop_size=20, generations=100, verbose=False)
+    best_seq, best_fit, hist = evolve(G, pop_size=20, generations=1000, verbose=False)
     plot_fitness_curve(hist, city_name)
     plot_best_attack(G, best_seq, 40, city_name)   # 使用新实现的不覆盖版本
         
