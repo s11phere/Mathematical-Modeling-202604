@@ -15,8 +15,7 @@ const int N=1e5,M=2e5,inf=1e9;
 std::random_device rd;
 std::mt19937 gen(rd());
 
-string city_files[2] = {
-    "cases/Dalian_filtered_Edgelist.csv",
+string city_files[1] = {
     "cases/Qingdao_filtered_Edgelist.csv",
 };
 
@@ -257,7 +256,7 @@ vector<eg_tag> add_edge(int sum,int update_freq){
                             fail++;
                             break;
                         }
-                        if(get_dis(a,b)>10000||largest_component_w()<pre_comp-100){
+                        if(get_dis(a,b)>12000||largest_component_w()<pre_comp-100){
                             g1[a*2].pop_back();
                             g1[a*2+1].pop_back();
                             g1[b*2].pop_back();
@@ -287,7 +286,7 @@ vector<eg_tag> add_edge(int sum,int update_freq){
         int a=dist(gen),b=dist(gen);
         while(deleted[a]) a=dist(gen);
         while(deleted[b]||b==a) b=dist(gen);
-        while(get_dis(a,b)>10000){
+        while(get_dis(a,b)>12000){
             a=dist(gen),b=dist(gen);
             while(deleted[a]) a=dist(gen);
             while(deleted[b]||b==a) b=dist(gen);
@@ -347,11 +346,11 @@ vector<int> iter_delete_nodes(int target, int update_freq) {
 }
 
 int main(){
-    int num_added[2]={1000,2000};
+    int num_added[2]={600};
     for(string filepath:city_files){
         cout <<endl<< filepath << endl;
         for(int num:num_added){
-            for(int i=1;i<=3;i++){
+            for(int i=1;i<=10;i++){
                 read_csv(filepath);
                 int num_add_edges=num;
                 vector<eg_tag> added_edges=add_edge(num_add_edges,1000);
