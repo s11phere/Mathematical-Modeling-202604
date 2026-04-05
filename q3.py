@@ -18,6 +18,7 @@ city_files = [
     "cases/Zhengzhou_filtered_Edgelist.csv"
 ]
 
+
 def heuristic(G: dict, node, coeff: float):
     """计算节点优先级"""
     nbr_ids = G[node]
@@ -35,6 +36,7 @@ def heuristic(G: dict, node, coeff: float):
     clustering = actual / max_possible if max_possible > 0 else 0
     return len(G[node]) + coeff * clustering
 
+
 def get_sorted_list_by_heuristic(G: dict, coeff: float):
     """按启发式值降序排序，相同分数内随机打乱"""
     scores = {node: heuristic(G, node, coeff) for node in G}
@@ -42,7 +44,7 @@ def get_sorted_list_by_heuristic(G: dict, coeff: float):
     groups = defaultdict(list)
     for node, score in scores.items():
         groups[score].append((node, score))
-    
+
     randomized_items = []
     for score in sorted(groups.keys(), reverse=True):
         group = groups[score]
@@ -50,11 +52,13 @@ def get_sorted_list_by_heuristic(G: dict, coeff: float):
         randomized_items.extend(group)
     return randomized_items
 
+
 def remove_node_from_dict(G: dict, node):
     """删除节点及其所有边"""
     for nxt in G[node]:
         G[nxt].remove(node)
     del G[node]
+
 
 def iterate_remove_node(G, target, coeff, update_freq=5):
     """
@@ -75,32 +79,36 @@ def iterate_remove_node(G, target, coeff, update_freq=5):
                 return res
     return res
 
+
 def main():
     # 尝试的系数列表
     coeff_list = [0.0]
     print(coeff_list)
     # 存储结果的DataFrame：行=系数，列=城市
-    results_df = pd.DataFrame(index=coeff_list, columns=[os.path.basename(f).replace("_filtered_Edgelist.csv", "") for f in city_files])
-    
+    results_df = pd.DataFrame(index=coeff_list, columns=[os.path.basename(
+        f).replace("_filtered_Edgelist.csv", "") for f in city_files])
+
     for coeff in coeff_list:
         print(f"\n=== 正在处理系数: {coeff} ===")
         for filepath in city_files:
-            city_name = os.path.basename(filepath).replace("_filtered_Edgelist.csv", "")
+            city_name = os.path.basename(filepath).replace(
+                "_filtered_Edgelist.csv", "")
             print(f"  城市: {city_name}")
-            
+
             # 读取数据并构建图
             df = pd.read_csv(filepath)
             G = build_graph(df)
             node_cnt = len(G)
             target = node_cnt * 0.01
-            
+
             res = iterate_remove_node(G, target, coeff, update_freq=50)
 
             # 绘图：移除节点比例 vs 最大连通分量大小
             x = [i / node_cnt for i in range(len(res) + 1)]
             y = [1.0] + [r / node_cnt for r in res]
             plt.figure()  # 新窗口绘制最终曲线
-            plt.plot(x, y, marker='o', linestyle='-', linewidth=1.5, markersize=3)
+            plt.plot(x, y, marker='o', linestyle='-',
+                     linewidth=1.5, markersize=3)
             plt.xlabel("Fraction of Removed Nodes")
             plt.ylabel("Largest Component Size")
             plt.grid(True, alpha=0.3)
@@ -109,15 +117,16 @@ def main():
             plt.tight_layout()
             plt.title(f"{city_name}")
             plt.savefig(f"figures/{city_name}_with_degree_heuristic.png")
-            
+
             area = sum(res) / (node_cnt * node_cnt)
             results_df.loc[coeff, city_name] = area
             print(f"    面积 = {area:.6f}")
-    
+
     # 保存结果到CSV
     results_df.to_csv("heuristic_coefficient_results.csv", float_format="%.6f")
     print("\n结果已保存到 heuristic_coefficient_results.csv")
     print(results_df)
+
 
 if __name__ == "__main__":
     main()
