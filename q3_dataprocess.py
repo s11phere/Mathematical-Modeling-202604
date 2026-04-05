@@ -122,34 +122,38 @@ def parse_q4_data(filename="q4_data.txt"):
 if __name__ == "__main__":
     city_names = ["Chengdu","Dalian","Dongguan","Harbin","Qingdao","Quanzhou","Shenyang","Zhengzhou"]
     
-    data = parse_q4_data()
+    data = [
+            [0.049454 , 0.042808 , 0.044988 , 0.047182 , 0.047230 , 0.049241 , 0.049410 , 0.059691 , 0.065801 , 0.083577],
+            [0.031542 , 0.027377 , 0.028852 , 0.029564 , 0.029191 , 0.030963 , 0.034448 , 0.037988 , 0.035220 , 0.048947],
+            [0.045443 , 0.042354 , 0.039997 , 0.041200 , 0.042377 , 0.042744 , 0.045962 , 0.053730 , 0.057238 , 0.075980],
+            [0.045807 , 0.039810 , 0.043272 , 0.048433 , 0.051488 , 0.053339 , 0.053317 , 0.056905 , 0.064578 , 0.082521],
+            [0.036208 , 0.031444 , 0.030679 , 0.031273 , 0.030963 , 0.033733 , 0.035342 , 0.035708 , 0.041509 , 0.044791],
+            [0.067718 , 0.054743 , 0.054149 , 0.053596 , 0.053547 , 0.055953 , 0.061102 , 0.066473 , 0.065843 , 0.083457],
+            [0.057577 , 0.052072 , 0.048764 , 0.054185 , 0.059513 , 0.059557 , 0.061525 , 0.070516 , 0.081701 , 0.104561],
+            [0.062269 , 0.052817 , 0.056697 , 0.057674 , 0.056898 , 0.061811 , 0.068276 , 0.079858 , 0.084850 , 0.109259],
+            ]
 
     for i in range(len(city_names)):
 
-        img_path = Path(__file__).parent / "flow_area" / f"{city_names[i]}_flow_area_optimized_attack.png"
-
+        img_path = Path(__file__).parent / "r_decisive" / f"{city_names[i]}_r_decisive.png"
         city_name = city_names[i]
-        G = get_data(city_name)
-        N = len(G.nodes())
 
 
 
-        datai = data[i]
-    
-        robustness = datai[1]
 
-        y = [datai[0][i]/datai[0][0] for i in range(len(datai[0]))]
-        x = [i/N for i in range(len(y))]
+
+        y = data[i]
+        x = [0,50,100,200,300,400,500,750,1000,2000]
 
     # 绘图
         plt.figure(figsize=(10,6))
-        plt.plot(x, y, marker='.', linestyle='-',markersize=4)
-        plt.title(f"Optimized Attack - {city_name} (robustness={robustness:.5f})")
-        plt.xlabel("Fraction of Removed Nodes")
-        plt.ylabel("Normalized Largest Component")
+        plt.plot(x, y, marker='.', linestyle='-')
+        plt.title(f"r_decisive - {city_name}")
+        plt.xlabel("Radius of Breaking Area")
+        plt.ylabel("Minimized Robustness")
         plt.grid(True)
-        plt.ylim(0,1)
-        plt.xlim(0,max(x))
+        plt.ylim(0,max(y)+0.02)
+        plt.xlim(0,2050)
         plt.tight_layout()
         plt.savefig(img_path, dpi=300)
         plt.show()
