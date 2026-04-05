@@ -83,27 +83,61 @@ def get_data(city_name:str):
 
 
 
+def parse_q4_data(filename="q4_data.txt"):
+    """
+    读取并解析 q4_data.txt，返回列表，每个元素为：
+    (整数列表, 文件名, 结果整数, 结果浮点数)
+    """
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, filename)
+
+    with open(file_path, 'r', encoding='utf-8') as f:
+        # 读取所有行，去除首尾空白，过滤可能的空行
+        lines = [line.strip() for line in f if line.strip()]
+    
+    data = []
+    # 每三行一组
+    for i in range(0, len(lines)):
+        
+       # 结果行
+        res_line = lines[i]
+
+        print(res_line)
+        # 解析第一行：空格分割，最后一个是文件名，前面都是整数
+        parts = res_line.split()
+        robustness = float(parts[-1])            
+        int_list = list(map(int, parts[:-5]))
+        
+        data.append((int_list, robustness))
+        
+    
+    return data
+
+
+
+
 
 # 使用示例
 if __name__ == "__main__":
     city_names = ["Chengdu","Dalian","Dongguan","Harbin","Qingdao","Quanzhou","Shenyang","Zhengzhou"]
     
-    data = parse_q3_data()
+    data = parse_q4_data()
 
     for i in range(len(city_names)):
 
-        img_path = Path(__file__).parent / "flow_degree" / f"{city_names[i]}_flow_degree_optimized_attack.png"
+        img_path = Path(__file__).parent / "flow_area" / f"{city_names[i]}_flow_area_optimized_attack.png"
 
         city_name = city_names[i]
         G = get_data(city_name)
         N = len(G.nodes())
 
-        print(city_name,N)
-        continue
+
 
         datai = data[i]
+    
+        robustness = datai[1]
 
-        robustness = datai[3]
         y = [datai[0][i]/datai[0][0] for i in range(len(datai[0]))]
         x = [i/N for i in range(len(y))]
 
