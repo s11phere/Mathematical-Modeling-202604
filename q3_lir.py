@@ -48,8 +48,8 @@ def get_data(city_name:str):
     # 记录每个节点的坐标（取第一次出现）
     node_coords = {}
     for _, row in df.iterrows():
-        u = row['START_NODE']
-        v = row['END_NODE']
+        u = int(row['START_NODE'])
+        v = int(row['END_NODE'])
         # 处理坐标（可选）
         if 'XCoord' in df.columns and 'YCoord' in df.columns:
             if u not in node_coords:
