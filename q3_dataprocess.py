@@ -152,11 +152,12 @@ def parse_q5_data(filename="q5_data1.txt"):
 if __name__ == "__main__":
     city_names = ["Chengdu","Dalian","Dongguan","Harbin","Qingdao","Quanzhou","Shenyang","Zhengzhou"]
     
-    y = parse_q5_data()
-    y = [y[i]/y[0] for i in range(len(y))]
-    x = [i/17894 for i in range(len(y))]
 
-    plt.plot(x,y)
+    y = [(0.0319689+0.0361689+0.0352537)/3,(0.0367157+0.0386777)/2,(0.0376781+0.0396701)/2,(0.0413119+0.0373322+0.0421512)/3,(0.0452521+0.0443707+0.0394283)/3,(0.0446043+0.0460529)/2,0.0460011,(0.0490976+0.0529997+0.0439305)/3]
+    
+    x = [0,25,50,75,100,150,200,300]
+
+    plt.plot(x,y,marker="o")
     plt.show()
 
 
