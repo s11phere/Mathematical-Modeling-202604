@@ -77,7 +77,7 @@ def iterate_remove_node(G, target, coeff, update_freq=5):
 
 def main():
     # 尝试的系数列表
-    coeff_list = [round(i * 0.1, 1)-1 for i in range(21)]  # -1.0, ..., 1.0
+    coeff_list = [-0.6]  # -1.0, ..., 1.0
     print(coeff_list)
     # 存储结果的DataFrame：行=系数，列=城市
     results_df = pd.DataFrame(index=coeff_list, columns=[os.path.basename(f).replace("_filtered_Edgelist.csv", "") for f in city_files])
@@ -108,7 +108,8 @@ def main():
             plt.xlim(0, 0.4)
             plt.ylim(0, 1)
             plt.tight_layout()
-            plt.show(block=True)  # 阻塞显示最终结果
+            plt.title(f"{city_name}")
+            plt.savefig(f"figures/{city_name}_q3_deg_clu_heuristic.png")
             
             area = sum(res) / (node_cnt * node_cnt)
             results_df.loc[coeff, city_name] = area

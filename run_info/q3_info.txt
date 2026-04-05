@@ -94,3 +94,22 @@ Finished cases/Shenyang_filtered_Edgelist.csv
 8251 result: 0.0825989
 Finished cases/Zhengzhou_filtered_Edgelist.csv
 5216 result: 0.0799561
+
+网络流启发,只在最大连通分量上模拟
+
+Finished cases/Chengdu_filtered_Edgelist.csv
+4251 result: 0.0515703
+Finished cases/Dalian_filtered_Edgelist.csv
+3101 result: 0.032009
+Finished cases/Dongguan_filtered_Edgelist.csv
+2701 result: 0.049443
+Finished cases/Harbin_filtered_Edgelist.csv
+2960 result: 0.0447576
+Finished cases/Qingdao_filtered_Edgelist.csv
+3653 result: 0.037699
+Finished cases/Quanzhou_filtered_Edgelist.csv
+2401 result: 0.0689659
+Finished cases/Shenyang_filtered_Edgelist.csv
+3751 result: 0.0647309
+Finished cases/Zhengzhou_filtered_Edgelist.csv
+3102 result: 0.0675803

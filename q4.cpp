@@ -10,7 +10,7 @@
 #include<algorithm>
 #include<random>
 using namespace std;
-const int N=1e5,M=2e5,inf=1e9;
+const int N=7e4,M=2e5,inf=1e9;
 
 std::random_device rd;
 std::mt19937 gen(rd());
@@ -26,16 +26,118 @@ string city_files[8] = {
     "cases/Zhengzhou_filtered_Edgelist.csv"
 };
 
+class PointFinder {
+public:
+    PointFinder(){}
+    PointFinder(const std::vector<double>& xs, 
+                const std::vector<double>& ys,
+                const std::vector<int>& ids,
+                int targetCellsPerDim = -1) 
+    {
+        N = xs.size();
+        
+        // 计算数据范围
+        minX = *std::min_element(xs.begin(), xs.end());
+        maxX = *std::max_element(xs.begin(), xs.end());
+        minY = *std::min_element(ys.begin(), ys.end());
+        maxY = *std::max_element(ys.begin(), ys.end());
+        
+        // 自动确定网格数量
+        if (targetCellsPerDim <= 0) {
+            targetCellsPerDim = static_cast<int>(std::sqrt(N));
+            if (targetCellsPerDim < 1) targetCellsPerDim = 1;
+        }
+        // 避免网格过密或过疏
+        targetCellsPerDim = std::max(1, std::min(targetCellsPerDim, 1000));
+        
+        // 计算每个方向上的网格尺寸
+        double rangeX = maxX - minX;
+        double rangeY = maxY - minY;
+        
+        gridSizeX = rangeX / targetCellsPerDim;
+        gridSizeY = rangeY / targetCellsPerDim;
+        gridNumX = targetCellsPerDim + 1;  // 实际网格数（边界可能多一个）
+        gridNumY = targetCellsPerDim + 1;
+        
+        // 初始化网格
+        grid.resize(gridNumX * gridNumY);
+        
+        // 将每个点插入对应网格
+        for (size_t i = 0; i < N; ++i) {
+            int gx = getGridIndex(xs[i], minX, gridSizeX);
+            int gy = getGridIndex(ys[i], minY, gridSizeY);
+            grid[gy * gridNumX + gx].push_back(i);
+
+        }
+        
+        // 保存点坐标和ID供查询时精确计算距离
+        this->xs = xs;
+        this->ys = ys;
+        this->ids = ids;
+    }
+    
+    std::vector<int> findPointsInRadius(double qx, double qy, double radius) const {
+        std::vector<int> result;
+        if (radius < 0) return result;
+        
+        // 确定查询范围涉及的网格索引范围
+        int gx0 = getGridIndex(qx - radius, minX, gridSizeX);
+        int gx1 = getGridIndex(qx + radius, minX, gridSizeX);
+        int gy0 = getGridIndex(qy - radius, minY, gridSizeY);
+        int gy1 = getGridIndex(qy + radius, minY, gridSizeY);
+        
+        // 裁剪到有效网格范围内
+        gx0 = std::max(0, gx0);
+        gx1 = std::min(gridNumX - 1, gx1);
+        gy0 = std::max(0, gy0);
+        gy1 = std::min(gridNumY - 1, gy1);
+        
+        const double r2 = radius * radius;
+        for (int gy = gy0; gy <= gy1; ++gy) {
+            for (int gx = gx0; gx <= gx1; ++gx) {
+                for (int idx : grid[gy * gridNumX + gx]) {
+                    double dx = xs[idx] - qx;
+                    double dy = ys[idx] - qy;
+                    if (dx*dx + dy*dy <= r2) {
+                        result.push_back(ids[idx]);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+    
+private:
+    int N;
+    double minX, maxX, minY, maxY;
+    double gridSizeX, gridSizeY;
+    int gridNumX, gridNumY;
+    std::vector<std::vector<int>> grid;   // 一维扁平化存储，每个格子存储点的索引列表
+    std::vector<double> xs, ys;
+    std::vector<int> ids;
+    
+    // 根据坐标和网格参数计算网格索引
+    int getGridIndex(double coord, double minCoord, double cellSize) const {
+        int idx = static_cast<int>(std::floor((coord - minCoord) / cellSize));
+        // 边界情况：当坐标等于max时，可能得到 gridNum，需要减1
+        if (idx < 0) idx = 0;
+        if (idx >= gridNumX || idx >= gridNumY) idx = (idx >= gridNumX ? gridNumX-1 : gridNumY-1);
+        return idx;
+    }
+};
+PointFinder finder;
 struct eg{
     int d,id;
 };
 bool deleted[N],in_max_comp[N];
 vector<eg> g[N],g1[N];
+vector<int> max_comp;
 int s,t,cnt=0,v[M],v1[M],pos[N],dis[N],node_cnt;
 bool found[M],vis[N];
 int node_idx[M],rnode_idx[M];
-vector<int> max_comp;
+double x_coord[N],y_coord[N];
 eg flow[N];
+vector<int> surr_nodes_rad[N];
 inline void add(int a,int b,int val){
     cnt++;
     g1[a].push_back({b,cnt<<1});
@@ -142,14 +244,13 @@ int dfs(int cur,int tot){
 }
 
 void read_csv(string filepath){
-    for(int i=1;i<N;i++) g1[i].clear();
+    for(int i=0;i<N;i++) g1[i].clear();
     memset(v1,0,sizeof(v1));
     memset(found,0,sizeof(found));
     ifstream file(filepath);
     string line;
     getline(file,line);
     node_cnt=1;
-    cnt=0;
     while (getline(file, line)) {
         stringstream ss(line);
         string cell;
@@ -157,6 +258,8 @@ void read_csv(string filepath){
         while (getline(ss, cell, ',')) {
             row.push_back(cell);
         }
+        double x=stod(row[0]);
+        double y=stod(row[1]);
         int a = stoi(row[2]);
         int b = stoi(row[3]);
         if(!found[a]){
@@ -164,19 +267,30 @@ void read_csv(string filepath){
             rnode_idx[node_cnt]=a;
             found[a]=true;
         }
-        a=node_idx[a];
         if(!found[b]){
             node_idx[b]=++node_cnt;
             rnode_idx[node_cnt]=b;
             found[b]=true;
         }
-        b=node_idx[b];
-        add(a*2+1, b*2, 1);
+        x_coord[node_idx[a]]=x;
+        y_coord[node_idx[a]]=y;
+        add(node_idx[a]*2+1, node_idx[b]*2, 1);
     }
     for(int i=1;i<=node_cnt;i++) add(i*2,i*2+1,inf);
+    vector<double> X,Y;
+    vector<int> idx;
+    X.reserve(node_cnt);
+    Y.reserve(node_cnt);
+    idx.reserve(node_cnt);
+    for(int i=1;i<=node_cnt;i++){
+        X.push_back(x_coord[i]);
+        Y.push_back(y_coord[i]);
+        idx.push_back(i);
+    }
+    finder=PointFinder(X,Y,idx);
 }
 
-void dinic(int iters){
+void dinic(int iters=50){
     memset(flow, 0, sizeof(flow));
     for(int i=1;i<=node_cnt;i++) flow[i].id = i;
     
@@ -216,10 +330,10 @@ int heuristic(int idx){
 }
 
 // 迭代删除节点
-vector<int> iter_delete_nodes(int target, int update_freq) {
+vector<int> iter_delete_nodes(int target, int update_freq,double rad) {
     vector<int> ans;
-    int iters=50;
     int comp=node_cnt;
+    int iters=50;
     while (true) {
         int iters_;
         if(comp<target*10){
@@ -228,23 +342,41 @@ vector<int> iter_delete_nodes(int target, int update_freq) {
         else iters_=iters;
         comp=largest_component();
         dinic(iters_);
+        
         // 收集未删除节点并按流量降序排序
         vector<eg> candidates;
         for (int i = 1; i <= node_cnt; ++i) {
-            if (!deleted[i]) candidates.push_back(flow[i]);
+            if (!deleted[i]){
+                candidates.push_back(flow[i]);
+                vector<int> surr_nodes=finder.findPointsInRadius(x_coord[i],y_coord[i],rad);
+                int tot=0;
+                for(int surr:surr_nodes){
+                    tot+=flow[surr].d;
+                }
+                candidates.back().d=tot;
+                surr_nodes_rad[i]=surr_nodes;
+            }
         }
-        // 使用 partial_sort 取出前 update_freq 个
         int m = min(update_freq, (int)candidates.size());
         partial_sort(candidates.begin(), candidates.begin()+m, candidates.end(),
                     [](const eg& a, const eg& b) { return a.d > b.d; });
         // 依次删除这些节点
+        int del_cnt=0;
         for (int i = 0; i < iters_; ++i) {
-            int node = candidates[i].id;
-            deleted[node] = true;
-            comp = largest_component_w();
-            cout<<comp<<' ';
-            ans.push_back(comp);
-            if(comp<=target) return ans;
+            // cout<<"**"<<surr_nodes_rad[candidates[i].id].size()<<"**";
+            for(auto cur_del:surr_nodes_rad[candidates[i].id]){
+                if(!deleted[cur_del]){
+                    deleted[cur_del]=true;
+                    del_cnt++;
+                    comp = largest_component_w();
+                    cout<<comp<<' ';
+                    ans.push_back(comp);
+                }
+                if(del_cnt>=iters_) break;
+                if (comp <= target) {
+                    return ans;
+                }
+            }
         }
     }
 }
@@ -254,19 +386,12 @@ int main(){
         read_csv(filepath);
         int target=node_cnt/100;
         memset(deleted, 0, sizeof(deleted));
-        vector<int> res=iter_delete_nodes(target, 50);
+        vector<int> res=iter_delete_nodes(target,50,0);
         cout << "Finished " << filepath << endl;
         double ans=0;
         for(int x:res) ans+=(double)x/(node_cnt*node_cnt);
         cout<<res.size()<<' ';
         cout<<"result: "<<ans<<endl;
-        // string outfile = filepath.substr(filepath.find_last_of("/\\") + 1);
-        // outfile = outfile.substr(0, outfile.find_last_of('.')) + "_res.csv";
-        // ofstream fout(outfile);
-        // for (size_t i = 0; i < res.size(); ++i) {
-        //     fout << i + 1 << "," << res[i] << "\n";
-        // }
-        // fout.close();
     }
     return 0; 
 }
