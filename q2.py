@@ -530,11 +530,22 @@ def plot_eccentricity_distribution(csv_path, city_name="", output_dir="eccentric
     G, node_component = get_processed_graph(df, city_name=city_name, plot=False, include_length=True)
     print(f"原始节点数: {len(G)}")
 
+    """
     # 计算离心率分布（只考虑最大连通分量）
     ecc_list = eccentricity_distribution(G)
     if not ecc_list:
         print("无有效节点")
         return
+    """
+    # 改为：计算每个节点的最大邻边长度
+    ecc_list = []
+    for node in G.keys():
+        # 获取该节点所有邻边的长度
+        edge_lengths = [G[node][nbr][1] for nbr in range(len(G[node]))]
+        if edge_lengths:
+            ecc_list.append(max(edge_lengths))   # 取最大值
+        else:
+            ecc_list.append(0)  # 孤立节点（一般不会出现）    
 
     # 排序用于CDF
     ecc_sorted = np.sort(ecc_list)
@@ -548,7 +559,7 @@ def plot_eccentricity_distribution(csv_path, city_name="", output_dir="eccentric
     # 绘图
     plt.figure(figsize=(10, 6))
     plt.plot(ecc_sorted, y, marker='.', linestyle='-', linewidth=1)
-    plt.xlabel("Eccentricity (longest shortest path from node)")
+    plt.xlabel("Maximum edge length from node to its direct neighbors")
     plt.ylabel("Fraction of nodes")
     plt.title(f"CDF of Node Eccentricity - {city_name}")
     plt.grid(True, alpha=0.3)
@@ -646,6 +657,7 @@ if __name__ == "__main__":
     for city_file in city_files:
 
 
+
         csv_path = Path(__file__).parent / city_file
         city_name = csv_path.stem.replace('_Edgelist', '')
 
@@ -653,6 +665,7 @@ if __name__ == "__main__":
         # 读取原始数据
         df = pd.read_csv(csv_path)
         # 调用清洗函数
-        G,_ = get_processed_graph(df, city_name=city_name, plot=False, include_length=False)
+        G,_ = get_processed_graph(df, city_name=city_name, plot=False, include_length=True)
         # 转换为无向图（兼容带权邻接表）
-
+        
+        plot_eccentricity_distribution(csv_path, city_name=city_name, output_dir="eccentricity")

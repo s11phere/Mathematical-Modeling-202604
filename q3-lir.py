@@ -15,6 +15,8 @@ import scipy.sparse as sp
 from scipy.sparse.linalg import eigs
 import networkx as nx
 from functools import partial
+import copy
+from datetime import datetime
 
 
 
@@ -27,6 +29,9 @@ max_link_nx(G: nx.Graph) 获取G的max-link
 k_core_choose(G: nx.Graph,n:int) 获取G的k-核中要删除的n个节点,以列表返回
 attack(G: nx.Graph, l:list) 输入G与攻击顺序列表,返回G的攻击结果
 plot_list(city_name, l,n:int,N:int, output_dir:str) 绘图函数,传入城市名字,下降过程列表(需归一化),批尺寸,图尺寸,储存路径(一个词)
+simulation(G, city_name: str, func, n: int, lower_bound=0.01,strategy_name=None) 核心模拟函数,传入G,城市名字,攻击函数,批尺寸,下界,攻击策略名
+list_attack_resout(G,attack_list:list,d:int) 用于进化,传入城市地图与名字与攻击列表和攻击的分辨率,返回攻击下的鲁棒性
+expected_robustness(G,records: list, lower_bound=0.01) 用于进化,传入删点记录,求截止过的鲁棒性
 """
 
 
@@ -188,8 +193,10 @@ def simulation(G, city_name: str, func, n: int, lower_bound=0.01, strategy_name=
     if N == 0:
         return
 
-    records = [1.0]
+    records = [1.0] # 结果记录
     removed_total = 0
+
+
 
     while True:
         to_remove = func(G, n)
@@ -203,6 +210,8 @@ def simulation(G, city_name: str, func, n: int, lower_bound=0.01, strategy_name=
             largest = max(len(c) for c in nx.connected_components(G))
         norm = largest / N
         records.append(norm)
+
+
         if norm <= lower_bound or G.number_of_nodes() == 0:
             break
 
@@ -217,11 +226,242 @@ def simulation(G, city_name: str, func, n: int, lower_bound=0.01, strategy_name=
         output_dir = func.__name__
 
     plot_list(city_name, records, n, N, output_dir)
-    print(city_name,"robustness",sum(records)*n/N,"完成")
+
+    robustness = sum(records)*n/N
+    print(city_name,"robustness",robustness,"完成")
+
+    return(robustness)
 
 
     
 
+
+
+
+def list_attack_resout(G,attack_list:list,d=40):
+    G = G.copy()
+    N = G.number_of_nodes()
+    if N == 0:
+        return(0)
+
+    records = [1.0] # 结果记录
+    
+    divide_point = [(i * len(attack_list)) // d for i in range(d + 1)]
+
+    for i in range(d):
+        to_remove = attack_list[divide_point[i]: divide_point[i + 1]]
+        if not to_remove:
+            break
+        G.remove_nodes_from(to_remove)
+        
+        if G.number_of_nodes() == 0:
+            largest = 0
+        else:
+            largest = max(len(c) for c in nx.connected_components(G))
+        norm = largest / N
+        records.append(norm)
+
+
+    return(sum(records)/N,records)
+
+
+
+def expected_robustness(G,records: list, lower_bound=0.01):
+    N = G.number_of_nodes()
+    if min(records) >= lower_bound:
+        return(sum(records) / N)
+    else:
+        return(sum(records[i] for i in range(len(records)) if records[i] >= lower_bound)/N)
+
+
+
+
+def initialize_population(G, pop_size=20):
+    """初始化种群"""
+    L = int(G.number_of_nodes() / 4)
+    population = []
+    for _ in range(pop_size):
+        individual = list(random.sample(list(G.nodes()), L))
+        population.append(individual)
+    return(population)
+
+
+
+def cross_over(cross_c_rate,parent1, parent2):
+    """交叉操作"""
+    delta = random.uniform(0, 1)
+    if delta < cross_c_rate:
+        L = len(parent1)
+        child = []
+        child += parent1[:3*L // 5]
+        child_set = set(child)
+        i = 0
+        while len(child) < L:
+            if parent2[i] not in child_set:
+                child.append(parent2[i])
+                child_set.add(parent2[i])
+            i += 1
+        return(child)
+    else:
+        return(parent1.copy())
+
+    
+
+
+def mutate(individual, G, mutation_rate, replace_k_range=(20,80), shuffle_l_range=(100,200)):
+    """变异操作"""
+    L = len(individual)
+    individual_set = set(individual)
+
+    # 替换操作
+    delta = random.uniform(0, 1)
+    if delta < mutation_rate:
+        replace_k = random.randint(*replace_k_range)
+        for _ in range(replace_k):
+            node = random.choice(list(G.nodes()))
+            while node in individual_set:  # 避免重复
+                node = random.choice(list(G.nodes()))
+            index = random.randint(0, L - 1)
+            individual[index] = node
+            individual_set.add(node)
+
+    # 随机交换操作
+    delta = random.uniform(0, 1)
+    if delta < mutation_rate:
+        shuffle_l = random.randint(*shuffle_l_range)
+        start = random.randint(0, L - shuffle_l)
+        end = start + shuffle_l
+        individual_shuffle = individual[start:end]
+        random.shuffle(individual_shuffle)
+        individual[start:end] = individual_shuffle
+    
+    return(individual)
+
+
+
+def select(population, fitnesses, tournament_size=3):
+    """锦标赛选择，使用预先计算的适应度列表"""
+    candidates_idx = random.sample(range(len(population)), tournament_size)
+    best_idx = min(candidates_idx, key=lambda i: fitnesses[i])
+    return population[best_idx]
+
+
+
+
+def evaluate_population(population, G, d):
+    fitnesses = []
+    for ind in population:
+        area, _ = list_attack_resout(G, ind, d)
+        fitnesses.append(area)
+    return fitnesses
+
+
+
+
+def evolve(G,pop_size=20,generations=100,cross_c_rate=0.5,mutation_rate=0.1,replace_k_range=(20,80),
+           shuffle_l_range=(100,200),d=40,elite_size=5,tournament_size=3,verbose = False):
+    N = G.number_of_nodes()
+    L = int(N / 4)
+
+    population = initialize_population(G, pop_size)
+    best_individual = None
+    best_fitness = float("inf")
+    fitness_history = []
+
+    for gen in range(generations):
+
+        fitnesses = evaluate_population(population, G, d)
+
+        gen_best_fitness = min(fitnesses)
+        if gen_best_fitness < best_fitness:
+            best_individual = population[fitnesses.index(gen_best_fitness)].copy()
+            best_fitness = gen_best_fitness
+
+        fitness_history.append(gen_best_fitness)
+
+        if verbose:
+            print("Best individual:", best_individual)
+            print("Best fitness:", best_fitness)
+            print("Fitness history:", fitness_history)
+
+        # 精英保留
+        elite_indices = sorted(range(len(fitnesses)), key=lambda i: fitnesses[i])[:elite_size]
+        new_population = [population[i] for i in elite_indices]
+
+        while len(new_population) < pop_size:
+            parent1 = select(population, fitnesses, tournament_size)
+            parent2 = select(population, fitnesses, tournament_size)
+            child = cross_over(cross_c_rate, parent1, parent2)
+            child = mutate(child, G, mutation_rate, replace_k_range, shuffle_l_range)
+            new_population.append(child)
+
+        print("第",gen+1,"代完成")
+        print("Best fitness:", best_fitness)
+
+
+    return(best_individual, best_fitness, fitness_history)
+
+
+
+
+
+
+
+def plot_fitness_curve(fitness_history, city_name, output_dir="evolution_history"):
+    script_dir = Path(__file__).parent
+    output_path = script_dir / output_dir
+    output_path.mkdir(parents=True, exist_ok=True)
+    
+    # 生成时间戳
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{city_name}_{output_dir}_evolution_history_{timestamp}.png"
+    save_path = output_path / filename
+    
+    plt.figure(figsize=(10, 5))
+    plt.plot(fitness_history, linewidth=1.5)
+    plt.xlabel("Generation")
+    plt.ylabel("Best Fitness (Robustness Area)")
+    plt.title(f"GA Optimization - {city_name}")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300)
+    print(f"进化曲线已保存至: {save_path}")
+    plt.show()
+
+
+
+
+
+def plot_best_attack(G, best_seq, d, city_name, output_dir="ga_results"):
+    area, records = list_attack_resout(G, best_seq, d)
+    N = G.number_of_nodes()
+    m = len(best_seq)
+    x = [i * m / N for i in range(len(records))]   # 实际删除比例
+
+    script_dir = Path(__file__).parent
+    out_path = script_dir / output_dir
+    out_path.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    img_path = out_path / f"{city_name}_optimized_attack_{timestamp}.png"
+    csv_path = out_path / f"{city_name}_optimized_attack_{timestamp}.csv"
+
+    # 保存 CSV
+    pd.DataFrame({"Fraction_Removed": x, "Normalized_Size": records}).to_csv(csv_path, index=False)
+
+    # 绘图
+    plt.figure(figsize=(10,6))
+    plt.plot(x, records, marker='o', linestyle='-')
+    plt.title(f"Optimized Attack - {city_name} (Area={area:.4f})")
+    plt.xlabel("Fraction of Removed Nodes")
+    plt.ylabel("Normalized Largest Component")
+    plt.grid(True)
+    plt.ylim(0,1)
+    plt.tight_layout()
+    plt.savefig(img_path, dpi=300)
+    plt.show()
+    print(f"图片保存至: {img_path}")
+    return area
 
 
 
@@ -236,11 +476,10 @@ def simulation(G, city_name: str, func, n: int, lower_bound=0.01, strategy_name=
 if __name__ == "__main__":
     city_names = ["Chengdu","Dalian","Dongguan","Harbin","Qingdao","Quanzhou","Shenyang","Zhengzhou"]
 
-    for city_name in city_names:
-        G = get_data(city_name)
+    city_name = "Qingdao"
 
-        # 3-core 攻击
-        simulation(G, city_name, partial(k_core_choose, k=3), 20, strategy_name="3_core")
-
-
+    G = get_data(city_name)   # 您的读取函数
+    best_seq, best_fit, hist = evolve(G, pop_size=20, generations=100, verbose=False)
+    plot_fitness_curve(hist, city_name)
+    plot_best_attack(G, best_seq, 40, city_name)   # 使用新实现的不覆盖版本
         
