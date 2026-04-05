@@ -1,0 +1,41 @@
+25
+
+cases/Chengdu_filtered_Edgelist.csv
+25 edges added with cost 214423, 3013 nodes removed, result: 0.0535663
+25 edges added with cost 204053, 3028 nodes removed, result: 0.0552694
+25 edges added with cost 217832, 3143 nodes removed, result: 0.0580935
+
+cases/Dalian_filtered_Edgelist.csv
+25 edges added with cost 167717, 2125 nodes removed, result: 0.0340696
+25 edges added with cost 184634, 2069 nodes removed, result: 0.0369663
+25 edges added with cost 149667, 2074 nodes removed, result: 0.0332905
+
+cases/Dongguan_filtered_Edgelist.csv
+25 edges added with cost 165091, 1779 nodes removed, result: 0.0632206
+25 edges added with cost 187381, 1697 nodes removed, result: 0.0554196
+25 edges added with cost 196336, 1731 nodes removed, result: 0.0593553
+
+cases/Harbin_filtered_Edgelist.csv
+25 edges added with cost 137915, 2031 nodes removed, result: 0.0480598
+25 edges added with cost 161055, 1964 nodes removed, result: 0.0475814
+25 edges added with cost 194773, 2000 nodes removed, result: 0.061917
+
+cases/Qingdao_filtered_Edgelist.csv
+25 edges added with cost 185866, 2347 nodes removed, result: 0.0367157
+25 edges added with cost 176663, 2400 nodes removed, result: 0.0434958
+25 edges added with cost 185855, 2359 nodes removed, result: 0.0386777
+
+cases/Quanzhou_filtered_Edgelist.csv
+25 edges added with cost 189235, 1381 nodes removed, result: 0.0654414
+25 edges added with cost 191671, 1423 nodes removed, result: 0.0752838
+25 edges added with cost 166283, 1409 nodes removed, result: 0.0694192
+
+cases/Shenyang_filtered_Edgelist.csv
+25 edges added with cost 216455, 2590 nodes removed, result: 0.0646583
+25 edges added with cost 194518, 2551 nodes removed, result: 0.0667982
+25 edges added with cost 178832, 2599 nodes removed, result: 0.066043
+
+cases/Zhengzhou_filtered_Edgelist.csv
+25 edges added with cost 193642, 1962 nodes removed, result: 0.0636056
+25 edges added with cost 167965, 1899 nodes removed, result: 0.0655606
+25 edges added with cost 183867, 2006 nodes removed, result: 0.0776167

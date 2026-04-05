@@ -1,0 +1,41 @@
+50
+
+cases/Chengdu_filtered_Edgelist.csv
+50 edges added with cost 376229, 3068 nodes removed, result: 0.0576563
+50 edges added with cost 409855, 3097 nodes removed, result: 0.0634589
+50 edges added with cost 392138, 3057 nodes removed, result: 0.0523821
+
+cases/Dalian_filtered_Edgelist.csv
+50 edges added with cost 388270, 2093 nodes removed, result: 0.0378469
+50 edges added with cost 292498, 2156 nodes removed, result: 0.03689
+50 edges added with cost 343573, 2137 nodes removed, result: 0.0346183
+
+cases/Dongguan_filtered_Edgelist.csv
+50 edges added with cost 328243, 1788 nodes removed, result: 0.0560789
+50 edges added with cost 363684, 1715 nodes removed, result: 0.0522813
+50 edges added with cost 351826, 1863 nodes removed, result: 0.0652324
+
+cases/Harbin_filtered_Edgelist.csv
+50 edges added with cost 324941, 1945 nodes removed, result: 0.0580151
+50 edges added with cost 349815, 2000 nodes removed, result: 0.0594581
+50 edges added with cost 306795, 1948 nodes removed, result: 0.0553954
+
+cases/Qingdao_filtered_Edgelist.csv
+50 edges added with cost 354762, 2280 nodes removed, result: 0.0376781
+50 edges added with cost 340043, 2224 nodes removed, result: 0.0361677
+50 edges added with cost 359413, 2415 nodes removed, result: 0.0396701
+
+cases/Quanzhou_filtered_Edgelist.csv
+50 edges added with cost 357831, 1371 nodes removed, result: 0.073477
+50 edges added with cost 337001, 1424 nodes removed, result: 0.0760775
+50 edges added with cost 340673, 1353 nodes removed, result: 0.0702624
+
+cases/Shenyang_filtered_Edgelist.csv
+50 edges added with cost 403086, 2581 nodes removed, result: 0.0746021
+50 edges added with cost 413872, 2679 nodes removed, result: 0.0637871
+50 edges added with cost 315684, 2651 nodes removed, result: 0.0668918
+
+cases/Zhengzhou_filtered_Edgelist.csv
+50 edges added with cost 432100, 1990 nodes removed, result: 0.0741879
+50 edges added with cost 348862, 2102 nodes removed, result: 0.0954752
+50 edges added with cost 364312, 1955 nodes removed, result: 0.0689272

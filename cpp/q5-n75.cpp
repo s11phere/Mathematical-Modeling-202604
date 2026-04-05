@@ -353,7 +353,9 @@ vector<int> iter_delete_nodes(int target, int update_freq) {
 }
 
 int main(){
-    int num_added[6]={25,50,75,100,150,200};
+    freopen("run_info/q5_info_n75.txt","w",stdout);
+    int num_added[1]={75};
+    cout<<num_added[0]<<endl;
     for(string filepath:city_files){
         cout <<endl<< filepath << endl;
         for(int num:num_added){

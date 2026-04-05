@@ -1,0 +1,41 @@
+100
+
+cases/Chengdu_filtered_Edgelist.csv
+100 edges added with cost 839064, 3013 nodes removed, result: 0.0594514
+100 edges added with cost 742579, 3176 nodes removed, result: 0.0610159
+100 edges added with cost 835501, 3331 nodes removed, result: 0.0603176
+
+cases/Dalian_filtered_Edgelist.csv
+100 edges added with cost 701506, 2260 nodes removed, result: 0.047442
+100 edges added with cost 721525, 2221 nodes removed, result: 0.03609
+100 edges added with cost 727731, 2322 nodes removed, result: 0.0451904
+
+cases/Dongguan_filtered_Edgelist.csv
+100 edges added with cost 734620, 1796 nodes removed, result: 0.0648518
+100 edges added with cost 827171, 1870 nodes removed, result: 0.064613
+100 edges added with cost 781213, 1843 nodes removed, result: 0.065696
+
+cases/Harbin_filtered_Edgelist.csv
+100 edges added with cost 646019, 2045 nodes removed, result: 0.0589399
+100 edges added with cost 549869, 2067 nodes removed, result: 0.0619417
+100 edges added with cost 669577, 1978 nodes removed, result: 0.0593362
+
+cases/Qingdao_filtered_Edgelist.csv
+100 edges added with cost 704262, 2447 nodes removed, result: 0.0452521
+100 edges added with cost 679926, 2404 nodes removed, result: 0.0443707
+100 edges added with cost 743374, 2368 nodes removed, result: 0.0394283
+
+cases/Quanzhou_filtered_Edgelist.csv
+100 edges added with cost 649704, 1457 nodes removed, result: 0.0702624
+100 edges added with cost 668475, 1459 nodes removed, result: 0.0718475
+100 edges added with cost 733565, 1551 nodes removed, result: 0.0837052
+
+cases/Shenyang_filtered_Edgelist.csv
+100 edges added with cost 871589, 2681 nodes removed, result: 0.0755983
+100 edges added with cost 772715, 2667 nodes removed, result: 0.0808684
+100 edges added with cost 690903, 2601 nodes removed, result: 0.0807054
+
+cases/Zhengzhou_filtered_Edgelist.csv
+100 edges added with cost 750192, 2036 nodes removed, result: 0.0738533
+100 edges added with cost 731537, 2077 nodes removed, result: 0.0808055
+100 edges added with cost 738559, 2024 nodes removed, result: 0.0765715

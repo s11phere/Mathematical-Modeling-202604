@@ -1,0 +1,41 @@
+75
+
+cases/Chengdu_filtered_Edgelist.csv
+75 edges added with cost 644671, 3213 nodes removed, result: 0.0594776
+75 edges added with cost 652720, 3235 nodes removed, result: 0.0635434
+75 edges added with cost 619669, 3154 nodes removed, result: 0.0621883
+
+cases/Dalian_filtered_Edgelist.csv
+75 edges added with cost 576726, 2178 nodes removed, result: 0.0372387
+75 edges added with cost 517436, 2154 nodes removed, result: 0.0351383
+75 edges added with cost 561168, 2247 nodes removed, result: 0.0390244
+
+cases/Dongguan_filtered_Edgelist.csv
+75 edges added with cost 574615, 1760 nodes removed, result: 0.0652251
+75 edges added with cost 565913, 1772 nodes removed, result: 0.0523293
+75 edges added with cost 542526, 1711 nodes removed, result: 0.0618198
+
+cases/Harbin_filtered_Edgelist.csv
+75 edges added with cost 573009, 2073 nodes removed, result: 0.0597835
+75 edges added with cost 481014, 2016 nodes removed, result: 0.0594946
+75 edges added with cost 538537, 2004 nodes removed, result: 0.0614539
+
+cases/Qingdao_filtered_Edgelist.csv
+75 edges added with cost 522538, 2382 nodes removed, result: 0.0413119
+75 edges added with cost 608716, 2357 nodes removed, result: 0.0373322
+75 edges added with cost 561168, 2378 nodes removed, result: 0.0421512
+
+cases/Quanzhou_filtered_Edgelist.csv
+75 edges added with cost 529474, 1421 nodes removed, result: 0.0826467
+75 edges added with cost 460557, 1457 nodes removed, result: 0.0793168
+75 edges added with cost 528720, 1413 nodes removed, result: 0.0711533
+
+cases/Shenyang_filtered_Edgelist.csv
+75 edges added with cost 504183, 2571 nodes removed, result: 0.0775717
+75 edges added with cost 548380, 2536 nodes removed, result: 0.0706327
+75 edges added with cost 624349, 2589 nodes removed, result: 0.0673384
+
+cases/Zhengzhou_filtered_Edgelist.csv
+75 edges added with cost 578557, 2073 nodes removed, result: 0.0815754
+75 edges added with cost 625362, 2186 nodes removed, result: 0.089623
+75 edges added with cost 528961, 2065 nodes removed, result: 0.0848284
