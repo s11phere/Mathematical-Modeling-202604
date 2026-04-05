@@ -24,6 +24,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 import scipy.sparse as sp
 from scipy.sparse.linalg import eigs
+import math
 
 
 
@@ -65,6 +66,57 @@ def creat_square_grid(n):
             graph_dic[node_id] = neighbors
     
     return graph_dic
+
+
+
+def create_hexagon_grid(n):
+    """
+    生成一个节点数大致为 n 的六边形网格图（无向图）。
+    使用轴向坐标 (x, y)，邻居为六个方向。
+    节点编号为 0 到 N-1。
+
+    参数:
+        n (int): 目标节点数（近似）
+
+    返回:
+        graph_dic (dict): 邻接表，如 {node_id: [neighbor_id, ...]}
+    """
+    # 1. 确定层数 radius（从0开始），使得节点数 >= n
+    # 节点数公式: 1 + 6 * (1 + 2 + ... + radius) = 1 + 3 * radius * (radius + 1)
+    # 但通常 radius 表示从中心到最外层的步数，此时节点数 = 1 + 6 * (radius*(radius+1)//2) = 1 + 3*radius*(radius+1)
+    radius = 0
+    while True:
+        num_nodes = 1 + 3 * radius * (radius + 1)
+        if num_nodes >= n:
+            break
+        radius += 1
+
+    # 2. 生成所有轴向坐标 (x, y)
+    coords = []
+    for x in range(-radius, radius + 1):
+        y_min = max(-radius, -x - radius)
+        y_max = min(radius, -x + radius)
+        for y in range(y_min, y_max + 1):
+            coords.append((x, y))
+
+    # 映射坐标到节点ID
+    coord_to_id = {coord: i for i, coord in enumerate(coords)}
+    N = len(coords)
+
+    # 3. 构建邻接表
+    graph_dic = {i: [] for i in range(N)}
+    # 六个方向（轴向坐标）
+    directions = [(1, 0), (0, 1), (-1, 1), (-1, 0), (0, -1), (1, -1)]
+
+    for (x, y), i in coord_to_id.items():
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            if (nx, ny) in coord_to_id:
+                j = coord_to_id[(nx, ny)]
+                graph_dic[i].append(j)
+
+    return graph_dic
+
 
 
 
@@ -322,8 +374,8 @@ def related():
         print(f"清洗后节点数: {len(G)}")
         print(f"最大连通分量: {max_link(G)}")
 
-        n = int(math.sqrt(len(G)))
-        grid = creat_square_grid(n)
+        n = int(len(G))
+        grid = create_hexagon_grid(n)
 
         grid_line = strenth_line(grid, 20)
         grid_robust = robustness(grid_line)
@@ -652,7 +704,7 @@ if __name__ == "__main__":
         "cases/Shenyang_Edgelist.csv",
         "cases/Zhengzhou_Edgelist.csv"
     ]
-
+    related()
 
     for city_file in city_files:
 
@@ -668,4 +720,4 @@ if __name__ == "__main__":
         G,_ = get_processed_graph(df, city_name=city_name, plot=False, include_length=True)
         # 转换为无向图（兼容带权邻接表）
         
-        plot_eccentricity_distribution(csv_path, city_name=city_name, output_dir="eccentricity")
+        
