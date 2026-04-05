@@ -36,6 +36,8 @@ struct eg_tag{
         return other.dis<dis;
     };
 };
+double x_coord[N];
+double y_coord[N];
 bool deleted[N],in_max_comp[N];
 vector<eg> g[N],g1[N];
 int s,t,cnt=0,v[M],v1[M],pos[N],dis[N],node_cnt;
@@ -164,21 +166,23 @@ void read_csv(string filepath){
         while (getline(ss, cell, ',')) {
             row.push_back(cell);
         }
+        double x = stod(row[0]);
+        double y = stod(row[1]);
         int a = stoi(row[2]);
         int b = stoi(row[3]);
-        if(!found[a]){
-            node_idx[a]=++node_cnt;
-            rnode_idx[node_cnt]=a;
-            found[a]=true;
+        if (!found[a]) {
+            node_idx[a] = ++node_cnt;
+            rnode_idx[node_cnt] = a;
+            found[a] = true;
         }
-        a=node_idx[a];
-        if(!found[b]){
-            node_idx[b]=++node_cnt;
-            rnode_idx[node_cnt]=b;
-            found[b]=true;
+        if (!found[b]) {
+            node_idx[b] = ++node_cnt;
+            rnode_idx[node_cnt] = b;
+            found[b] = true;
         }
-        b=node_idx[b];
-        add(a*2+1, b*2, 1);
+        x_coord[node_idx[a]] = x;
+        y_coord[node_idx[a]] = y;
+        add(node_idx[a]*2+1, node_idx[b]*2, 1);
     }
     for(int i=1;i<=node_cnt;i++) add(i*2,i*2+1,inf);
 }
@@ -216,11 +220,42 @@ void dinic(int iters){
     }
 }
 
-void kruskal(int center){
+inline double get_dis(int a,int b){
+    return sqrt((x_coord[a]-x_coord[b])*(x_coord[a]-x_coord[b])+(y_coord[a]-y_coord[b])*(y_coord[a]-y_coord[b]));
 }
 
-void add_edge(int sum,int update_freq){
+int p[100];
+int Find(int x){
+    if(p[x]!=x) p[x]=Find(p[x]);
+    return p[x];
+}
+
+inline vector<eg_tag> kruskal(int center){
+    priority_queue<eg_tag> pq;
+    vector<eg_tag> chosen_edges;
+    int tot_nodes=g1[center].size();
+    for(int i=0;i<tot_nodes;i++) p[i]=i;
+    for(int i=0;i<tot_nodes;i++){
+        for(int j=i+1;j<g1[center].size();j++){
+            pq.push({g1[center][i].d,g1[center][j].d,get_dis(g1[center][i].d,g1[center][j].d)});
+        }
+    }
+    int rem=tot_nodes-1;
+    while(!pq.empty()&&rem){
+        auto[a,b,_]=pq.top();
+        pq.pop();
+        if(Find(a)!=Find(b)){
+            p[Find(a)]=Find(b);
+            rem--;
+            chosen_edges.push_back({a,b,_});
+        }
+    }
+    return chosen_edges;
+}
+
+double add_edge(int sum,int update_freq){
     int iters=50;
+    double total_cost=0;
     while(true){
         dinic(iters);
         vector<eg> candidates;
@@ -232,6 +267,23 @@ void add_edge(int sum,int update_freq){
                     [](const eg& a, const eg& b) { return a.d > b.d; });
         for(int i=0;i<iters;i++){
             int node=candidates[i].id;
+            vector<eg_tag> edges=kruskal(node);
+            for(auto[a,b,cost]:edges){
+                bool exist=false;
+                for(auto[d,id]:g1[a*2+1]){
+                    if(d==b*2){
+                        exist=true;
+                        break;
+                    }
+                }
+                if(!exist){
+                    sum--;
+                    total_cost+=cost;
+                    add(a,b,1);
+                    add(b,a,1);
+                    if(sum<=0) return total_cost;
+                }
+            }
         }
     }
 }
@@ -273,13 +325,16 @@ vector<int> iter_delete_nodes(int target, int update_freq) {
 int main(){
     for(string filepath:city_files){
         read_csv(filepath);
+        int num_add_edges=1000;
+        double cost=add_edge(num_add_edges,50);
+        cout<<num_add_edges<<" edges added with cost "<<cost<<", ";
         int target=node_cnt/100;
         memset(deleted, 0, sizeof(deleted));
         vector<int> res=iter_delete_nodes(target, 50);
         cout << filepath << endl;
         double ans=0;
         for(int x:res) ans+=(double)x/(node_cnt*node_cnt);
-        cout<<res.size()<<' ';
+        cout<<res.size()<<" nodes removed, ";
         cout<<"result: "<<ans<<endl;
     }
     return 0; 

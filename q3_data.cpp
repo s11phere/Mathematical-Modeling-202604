@@ -29,12 +29,11 @@ string city_files[8] = {
 struct eg{
     int d,id;
 };
-bool deleted[N],in_max_comp[N];
+bool deleted[N];
 vector<eg> g[N],g1[N];
 int s,t,cnt=0,v[M],v1[M],pos[N],dis[N],node_cnt;
 bool found[M],vis[N];
 int node_idx[M],rnode_idx[M];
-vector<int> max_comp;
 eg flow[N];
 inline void add(int a,int b,int val){
     cnt++;
@@ -43,41 +42,13 @@ inline void add(int a,int b,int val){
     v1[cnt<<1]=val;
 }
 
-int largest_component_w() {
-    memset(vis,0,sizeof(vis));
-    int best = 0;
-    for (int i = 1; i <= node_cnt; ++i) {
-        if (!deleted[i] && !vis[i]) {
-            queue<int> q;
-            q.push(i*2+1);
-            vis[i] = true;
-            int cnt = 0;
-            while (!q.empty()) {
-                int cur = q.front();
-                q.pop();
-                ++cnt;
-                for (auto [d, id] : g1[cur]) {
-                    if(!vis[d/2]&&!deleted[d/2]){
-                        vis[d/2]=1;
-                        q.push(d+1);
-                    }
-                }
-            }
-            best=max(best,cnt);
-        }
-    }
-    return best;
-}
-
 int largest_component() {
     memset(vis,0,sizeof(vis));
     int best = 0;
     for (int i = 1; i <= node_cnt; ++i) {
         if (!deleted[i] && !vis[i]) {
             queue<int> q;
-            vector<int> cur_comp;
             q.push(i*2+1);
-            cur_comp.push_back(i);
             vis[i] = true;
             int cnt = 0;
             while (!q.empty()) {
@@ -87,19 +58,13 @@ int largest_component() {
                 for (auto [d, id] : g1[cur]) {
                     if(!vis[d/2]&&!deleted[d/2]){
                         vis[d/2]=1;
-                        cur_comp.push_back(d/2);
                         q.push(d+1);
                     }
                 }
             }
-            if(cnt>best){
-                best=cnt;
-                max_comp=cur_comp;
-            }
+            best = max(best, cnt);
         }
     }
-    memset(in_max_comp,0,sizeof(in_max_comp));
-    for(auto x:max_comp) in_max_comp[x]=1;
     return best;
 }
 
@@ -176,20 +141,21 @@ void read_csv(string filepath){
     for(int i=1;i<=node_cnt;i++) add(i*2,i*2+1,inf);
 }
 
-void dinic(int iters){
+void dinic(){
     memset(flow, 0, sizeof(flow));
     for(int i=1;i<=node_cnt;i++) flow[i].id = i;
     
     uniform_int_distribution<int> dist(1,node_cnt);
+    int iters = 50;
     for(int i=1;i<=iters;i++){
         memcpy(v, v1, sizeof(v));
         memset(pos, 0, sizeof(pos));
         for(int j=0; j<N; j++) g[j] = g1[j];
         
         int s_orig = dist(gen);
-        while(deleted[s_orig]||!in_max_comp[s_orig]) s_orig=dist(gen);
+        while(deleted[s_orig]) s_orig=dist(gen);
         int t_orig = dist(gen);
-        while(deleted[t_orig]||t_orig==s_orig||!in_max_comp[t_orig]) t_orig=dist(gen);
+        while(deleted[t_orig]||t_orig==s_orig) t_orig=dist(gen);
         s = s_orig * 2 + 1;
         t = t_orig * 2;
         
@@ -218,44 +184,68 @@ int heuristic(int idx){
 // 迭代删除节点
 vector<int> iter_delete_nodes(int target, int update_freq) {
     vector<int> ans;
-    int iters=50;
     int comp=node_cnt;
     while (true) {
-        int iters_;
-        if(comp<target*10){
-            iters_=iters*comp/(target*10);
+        dinic();
+        
+        if(comp>target*10){
+            // 收集未删除节点并按流量降序排序
+            vector<eg> candidates;
+            for (int i = 1; i <= node_cnt; ++i) {
+                if (!deleted[i]) candidates.push_back(flow[i]);
+            }
+            // 使用 partial_sort 取出前 update_freq 个
+            int m = min(update_freq, (int)candidates.size());
+            partial_sort(candidates.begin(), candidates.begin()+m, candidates.end(),
+                        [](const eg& a, const eg& b) { return a.d > b.d; });
+            // 依次删除这些节点
+            for (int i = 0; i < m; ++i) {
+                int node = candidates[i].id;
+                if(!deleted[node]){
+                    deleted[node] = true;
+                    comp = largest_component();
+                    cout<<comp<<' ';
+                    ans.push_back(comp);
+                }
+            }
         }
-        else iters_=iters;
-        comp=largest_component();
-        dinic(iters_);
-        // 收集未删除节点并按流量降序排序
-        vector<eg> candidates;
-        for (int i = 1; i <= node_cnt; ++i) {
-            if (!deleted[i]) candidates.push_back(flow[i]);
-        }
-        // 使用 partial_sort 取出前 update_freq 个
-        int m = min(update_freq, (int)candidates.size());
-        partial_sort(candidates.begin(), candidates.begin()+m, candidates.end(),
-                    [](const eg& a, const eg& b) { return a.d > b.d; });
-        // 依次删除这些节点
-        for (int i = 0; i < iters_; ++i) {
-            int node = candidates[i].id;
-            deleted[node] = true;
-            comp = largest_component_w();
-            cout<<comp<<' ';
-            ans.push_back(comp);
-            if(comp<=target) return ans;
-        }
+        else{
+            // 收集未删除节点并按流量降序排序
+            vector<eg> candidates;
+            for (int i = 1; i <= node_cnt; ++i) {
+                if (!deleted[i]){
+                    candidates.push_back(flow[i]);
+                    candidates.back().d=heuristic(candidates.back().id);
+                }
+            }
+            // 使用 partial_sort 取出前 update_freq 个
+            int m = min(update_freq, (int)candidates.size());
+            partial_sort(candidates.begin(), candidates.begin()+m, candidates.end(),
+                        [](const eg& a, const eg& b) { return a.d > b.d; });
+            // 依次删除这些节点
+            for (int i = 0; i < m; ++i) {
+                int node = candidates[i].id;
+                deleted[node] = true;
+                comp = largest_component();
+                cout<<comp<<' ';
+                ans.push_back(comp);
+                if (comp <= target) {
+                    return ans;
+                }
+            }
+        }  
+        
     }
 }
 
 int main(){
+    freopen("q3_data.txt","w",stdout);
     for(string filepath:city_files){
         read_csv(filepath);
         int target=node_cnt/100;
         memset(deleted, 0, sizeof(deleted));
         vector<int> res=iter_delete_nodes(target, 50);
-        cout << "Finished " << filepath << endl;
+        cout << filepath << endl;
         double ans=0;
         for(int x:res) ans+=(double)x/(node_cnt*node_cnt);
         cout<<res.size()<<' ';
