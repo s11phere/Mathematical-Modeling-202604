@@ -350,7 +350,7 @@ public:
         int iters=50;
         int comp=node_cnt;
         int pre_comp=comp;
-        int batch=sum/7;
+        int batch=sum/6;
         uniform_int_distribution<int> dist(1,node_cnt);
         vector<eg_tag> added_edges;
         while (true) {
@@ -387,7 +387,6 @@ public:
                         del_cnt++;
                         pre_comp=comp;
                         comp = largest_component_w();
-                        cout<<comp<<' ';
                         if(pre_comp-comp>300||(double)comp/pre_comp<0.9){
                             int fail=0;
                             for(int j=0;j<batch;j++){
@@ -400,11 +399,6 @@ public:
                                     add(b*2+1,a*2,1);
                                     if(fail_cnt>1000){
                                         fail++;
-                                        g1[a*2].pop_back();
-                                        g1[a*2+1].pop_back();
-                                        g1[b*2].pop_back();
-                                        g1[b*2+1].pop_back();
-                                        cnt-=2;
                                         break;
                                     }
                                     if(get_dis(a,b)>15000||largest_component_w()<pre_comp-100){
@@ -417,11 +411,15 @@ public:
                                     }
                                     else{
                                         added_edges.push_back({a,b,get_dis(a,b)});
-                                        comp=largest_component_w();
-                                        cout<<'#';
                                         break;
                                     }
                                 }
+                                g1[a*2].pop_back();
+                                g1[a*2+1].pop_back();
+                                g1[b*2].pop_back();
+                                g1[b*2+1].pop_back();
+                                cnt-=2;
+                                comp=largest_component_w();
                             }
                             sum-=batch-fail;
                             if(sum<=0) return added_edges;
@@ -450,6 +448,8 @@ public:
         vector<eg_tag> added_edges=add_edge(add_sum, update_freq, rad);
         double cost=0;
         for(auto[a,b,c]:added_edges){
+            add(a*2+1,b*2,1);
+            add(b*2+1,a*2,1);
             cost+=c;
         }
         cout<<add_sum<<" edges added with cost "<<cost<<", ";

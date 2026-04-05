@@ -1,0 +1,43 @@
+
+Radious: 50
+50
+
+cases/Chengdu_filtered_Edgelist.csv
+50 edges added with cost 610717, 2801 nodes removed, result: 0.0554678
+50 edges added with cost 544044, 2841 nodes removed, result: 0.0499568
+50 edges added with cost 545653, 2909 nodes removed, result: 0.0505749
+
+cases/Dalian_filtered_Edgelist.csv
+50 edges added with cost 544352, 2085 nodes removed, result: 0.0368316
+50 edges added with cost 461530, 2097 nodes removed, result: 0.0345545
+50 edges added with cost 543696, 2078 nodes removed, result: 0.0403334
+
+cases/Dongguan_filtered_Edgelist.csv
+50 edges added with cost 633575, 1607 nodes removed, result: 0.0563256
+50 edges added with cost 635380, 1615 nodes removed, result: 0.0470455
+50 edges added with cost 628048, 1633 nodes removed, result: 0.0484575
+
+cases/Harbin_filtered_Edgelist.csv
+50 edges added with cost 472889, 1984 nodes removed, result: 0.0548314
+50 edges added with cost 468874, 1869 nodes removed, result: 0.055435
+50 edges added with cost 450444, 1875 nodes removed, result: 0.0486435
+
+cases/Qingdao_filtered_Edgelist.csv
+50 edges added with cost 603085, 2134 nodes removed, result: 0.0369711
+50 edges added with cost 531575, 2147 nodes removed, result: 0.0421783
+50 edges added with cost 570605, 2137 nodes removed, result: 0.0393419
+
+cases/Quanzhou_filtered_Edgelist.csv
+50 edges added with cost 520181, 1371 nodes removed, result: 0.0711783
+50 edges added with cost 487624, 1358 nodes removed, result: 0.0667793
+50 edges added with cost 582608, 1367 nodes removed, result: 0.0657977
+
+cases/Shenyang_filtered_Edgelist.csv
+50 edges added with cost 595956, 2443 nodes removed, result: 0.0649288
+50 edges added with cost 575426, 2454 nodes removed, result: 0.0665589
+50 edges added with cost 501153, 2500 nodes removed, result: 0.0609217
+
+cases/Zhengzhou_filtered_Edgelist.csv
+50 edges added with cost 590659, 1842 nodes removed, result: 0.0661635
+50 edges added with cost 582666, 1897 nodes removed, result: 0.0637966
+50 edges added with cost 593056, 1846 nodes removed, result: 0.061102

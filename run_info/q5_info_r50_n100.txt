@@ -1,0 +1,43 @@
+
+Radious: 50
+100
+
+cases/Chengdu_filtered_Edgelist.csv
+100 edges added with cost 797116, 2860 nodes removed, result: 0.0496458
+100 edges added with cost 843183, 2983 nodes removed, result: 0.0531937
+100 edges added with cost 840955, 2910 nodes removed, result: 0.0526258
+
+cases/Dalian_filtered_Edgelist.csv
+100 edges added with cost 822659, 2238 nodes removed, result: 0.0423884
+100 edges added with cost 762816, 2119 nodes removed, result: 0.0366369
+100 edges added with cost 730417, 2039 nodes removed, result: 0.0351968
+
+cases/Dongguan_filtered_Edgelist.csv
+100 edges added with cost 709974, 1622 nodes removed, result: 0.0507617
+100 edges added with cost 738183, 1720 nodes removed, result: 0.0566649
+100 edges added with cost 725355, 1723 nodes removed, result: 0.0606444
+
+cases/Harbin_filtered_Edgelist.csv
+100 edges added with cost 627814, 1996 nodes removed, result: 0.0523203
+100 edges added with cost 747950, 2050 nodes removed, result: 0.0608631
+100 edges added with cost 656725, 2022 nodes removed, result: 0.0566647
+
+cases/Qingdao_filtered_Edgelist.csv
+100 edges added with cost 870528, 2286 nodes removed, result: 0.0351959
+100 edges added with cost 766518, 2218 nodes removed, result: 0.0398414
+100 edges added with cost 824723, 2251 nodes removed, result: 0.0403074
+
+cases/Quanzhou_filtered_Edgelist.csv
+100 edges added with cost 666674, 1429 nodes removed, result: 0.0786635
+100 edges added with cost 781160, 1379 nodes removed, result: 0.0798721
+100 edges added with cost 709826, 1438 nodes removed, result: 0.0767957
+
+cases/Shenyang_filtered_Edgelist.csv
+100 edges added with cost 792147, 2591 nodes removed, result: 0.0771738
+100 edges added with cost 799132, 2443 nodes removed, result: 0.0682794
+100 edges added with cost 833003, 2656 nodes removed, result: 0.0646234
+
+cases/Zhengzhou_filtered_Edgelist.csv
+100 edges added with cost 795599, 1872 nodes removed, result: 0.0723667
+100 edges added with cost 835479, 1981 nodes removed, result: 0.0745755
+100 edges added with cost 772891, 1917 nodes removed, result: 0.0771411

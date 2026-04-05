@@ -1,0 +1,13 @@
+
+Radious: 50
+400
+
+cases/Dalian_filtered_Edgelist.csv
+400 edges added with cost 4.82024e+06, 2551 nodes removed, result: 0.0617668
+400 edges added with cost 4.7102e+06, 2360 nodes removed, result: 0.0550008
+400 edges added with cost 4.68918e+06, 2445 nodes removed, result: 0.0570852
+
+cases/Qingdao_filtered_Edgelist.csv
+400 edges added with cost 5.14917e+06, 2627 nodes removed, result: 0.0506199
+400 edges added with cost 5.35852e+06, 2660 nodes removed, result: 0.0586218
+400 edges added with cost 5.42377e+06, 2553 nodes removed, result: 0.0523492

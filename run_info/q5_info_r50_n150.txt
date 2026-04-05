@@ -1,0 +1,43 @@
+
+Radious: 50
+150
+
+cases/Chengdu_filtered_Edgelist.csv
+150 edges added with cost 1.64787e+06, 3016 nodes removed, result: 0.0598964
+150 edges added with cost 1.63684e+06, 2943 nodes removed, result: 0.0557332
+150 edges added with cost 1.69145e+06, 3028 nodes removed, result: 0.0600175
+
+cases/Dalian_filtered_Edgelist.csv
+150 edges added with cost 1.55467e+06, 2251 nodes removed, result: 0.0465154
+150 edges added with cost 1.58453e+06, 2114 nodes removed, result: 0.0429926
+150 edges added with cost 1.54908e+06, 2151 nodes removed, result: 0.0429492
+
+cases/Dongguan_filtered_Edgelist.csv
+150 edges added with cost 1.66782e+06, 1794 nodes removed, result: 0.0669443
+150 edges added with cost 1.67135e+06, 1825 nodes removed, result: 0.0616907
+150 edges added with cost 1.68432e+06, 1722 nodes removed, result: 0.0609755
+
+cases/Harbin_filtered_Edgelist.csv
+150 edges added with cost 1.36738e+06, 2009 nodes removed, result: 0.0633876
+150 edges added with cost 1.56457e+06, 2089 nodes removed, result: 0.0636708
+150 edges added with cost 1.25186e+06, 2004 nodes removed, result: 0.0641733
+
+cases/Qingdao_filtered_Edgelist.csv
+150 edges added with cost 1.79482e+06, 2291 nodes removed, result: 0.0455401
+150 edges added with cost 1.67149e+06, 2280 nodes removed, result: 0.0424956
+150 edges added with cost 1.71347e+06, 2280 nodes removed, result: 0.0440243
+
+cases/Quanzhou_filtered_Edgelist.csv
+150 edges added with cost 1.58434e+06, 1477 nodes removed, result: 0.0817673
+150 edges added with cost 1.59014e+06, 1413 nodes removed, result: 0.0816465
+150 edges added with cost 1.87922e+06, 1463 nodes removed, result: 0.0881917
+
+cases/Shenyang_filtered_Edgelist.csv
+150 edges added with cost 1.81227e+06, 2666 nodes removed, result: 0.0795768
+150 edges added with cost 1.66015e+06, 2582 nodes removed, result: 0.0783988
+150 edges added with cost 1.68649e+06, 2621 nodes removed, result: 0.0794256
+
+cases/Zhengzhou_filtered_Edgelist.csv
+150 edges added with cost 1.67221e+06, 2034 nodes removed, result: 0.0769081
+150 edges added with cost 1.68539e+06, 1992 nodes removed, result: 0.0757155
+150 edges added with cost 1.71827e+06, 1996 nodes removed, result: 0.0785851

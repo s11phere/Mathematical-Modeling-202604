@@ -1,0 +1,43 @@
+
+Radious: 50
+75
+
+cases/Chengdu_filtered_Edgelist.csv
+75 edges added with cost 829154, 2832 nodes removed, result: 0.0546028
+75 edges added with cost 893061, 2945 nodes removed, result: 0.050882
+75 edges added with cost 926795, 2936 nodes removed, result: 0.0588039
+
+cases/Dalian_filtered_Edgelist.csv
+75 edges added with cost 765467, 2003 nodes removed, result: 0.0350053
+75 edges added with cost 852068, 2093 nodes removed, result: 0.0398755
+75 edges added with cost 863049, 2159 nodes removed, result: 0.0481884
+
+cases/Dongguan_filtered_Edgelist.csv
+75 edges added with cost 822734, 1677 nodes removed, result: 0.0567833
+75 edges added with cost 796211, 1744 nodes removed, result: 0.0555778
+75 edges added with cost 924605, 1695 nodes removed, result: 0.05639
+
+cases/Harbin_filtered_Edgelist.csv
+75 edges added with cost 670093, 1944 nodes removed, result: 0.0526608
+75 edges added with cost 665989, 1868 nodes removed, result: 0.0502082
+75 edges added with cost 749267, 1872 nodes removed, result: 0.0517211
+
+cases/Qingdao_filtered_Edgelist.csv
+75 edges added with cost 874463, 2178 nodes removed, result: 0.039125
+75 edges added with cost 896008, 2106 nodes removed, result: 0.0433319
+75 edges added with cost 972043, 2318 nodes removed, result: 0.0456219
+
+cases/Quanzhou_filtered_Edgelist.csv
+75 edges added with cost 743108, 1332 nodes removed, result: 0.0721064
+75 edges added with cost 760825, 1338 nodes removed, result: 0.070789
+75 edges added with cost 798907, 1403 nodes removed, result: 0.0767372
+
+cases/Shenyang_filtered_Edgelist.csv
+75 edges added with cost 836417, 2436 nodes removed, result: 0.067546
+75 edges added with cost 814929, 2603 nodes removed, result: 0.0714297
+75 edges added with cost 905760, 2562 nodes removed, result: 0.0727475
+
+cases/Zhengzhou_filtered_Edgelist.csv
+75 edges added with cost 827841, 1913 nodes removed, result: 0.0688118
+75 edges added with cost 911901, 1905 nodes removed, result: 0.0720112
+75 edges added with cost 868108, 1928 nodes removed, result: 0.0694879

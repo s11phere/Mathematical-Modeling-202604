@@ -1,0 +1,43 @@
+
+Radious: 50
+25
+
+cases/Chengdu_filtered_Edgelist.csv
+25 edges added with cost 290482, 2777 nodes removed, result: 0.046048
+25 edges added with cost 310790, 2854 nodes removed, result: 0.0484479
+25 edges added with cost 307356, 2906 nodes removed, result: 0.0491613
+
+cases/Dalian_filtered_Edgelist.csv
+25 edges added with cost 280830, 1959 nodes removed, result: 0.0308484
+25 edges added with cost 300548, 1934 nodes removed, result: 0.0286063
+25 edges added with cost 267874, 2026 nodes removed, result: 0.034631
+
+cases/Dongguan_filtered_Edgelist.csv
+25 edges added with cost 337901, 1581 nodes removed, result: 0.0479853
+25 edges added with cost 283410, 1595 nodes removed, result: 0.0541196
+25 edges added with cost 280745, 1638 nodes removed, result: 0.0485162
+
+cases/Harbin_filtered_Edgelist.csv
+25 edges added with cost 226420, 1849 nodes removed, result: 0.0488712
+25 edges added with cost 188592, 1865 nodes removed, result: 0.0501111
+25 edges added with cost 224182, 1853 nodes removed, result: 0.0477058
+
+cases/Qingdao_filtered_Edgelist.csv
+25 edges added with cost 335237, 2201 nodes removed, result: 0.0385156
+25 edges added with cost 327023, 2127 nodes removed, result: 0.0303876
+25 edges added with cost 305314, 2062 nodes removed, result: 0.0394111
+
+cases/Quanzhou_filtered_Edgelist.csv
+25 edges added with cost 228238, 1346 nodes removed, result: 0.0601726
+25 edges added with cost 238024, 1354 nodes removed, result: 0.066019
+25 edges added with cost 262806, 1329 nodes removed, result: 0.0647576
+
+cases/Shenyang_filtered_Edgelist.csv
+25 edges added with cost 282121, 2452 nodes removed, result: 0.0575161
+25 edges added with cost 233435, 2482 nodes removed, result: 0.0557716
+25 edges added with cost 297524, 2440 nodes removed, result: 0.0594156
+
+cases/Zhengzhou_filtered_Edgelist.csv
+25 edges added with cost 281427, 1901 nodes removed, result: 0.0584283
+25 edges added with cost 293490, 1901 nodes removed, result: 0.065898
+25 edges added with cost 299402, 1826 nodes removed, result: 0.0628486
