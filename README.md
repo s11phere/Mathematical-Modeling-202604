@@ -28,3 +28,9 @@
   - q5_demo_plot: 分析城市核心区域及相关特征
   - robustness_line: 删除一定比例节点之后剩余网络的鲁棒性
   - q5_lir.py 第五问探索，暂未完成
+
+## 最新进展
+在q3-q4中可以通过增加模拟次数，减小更新间隔的方式来大幅降低健壮性，幅度约为70%-80%
+### 参考数据
+Chengdu 999 nodes removed, result: 0.0124152
+Dalian 629 nodes removed, result: 0.00502209
